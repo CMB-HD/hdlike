@@ -89,7 +89,7 @@ sbatch nersc_perlmutter_job_template.sb
 (You should include the name of the CMB project to which you are charging your hours somewhere in the `job-name`; e.g., `#SBATCH --job-name=hdlike_CMBEXP`. Please see below for more information about using Cobaya on NERSC.)
 
 
-### Running MCMC chains on NERSC with Cobaya
+## Running MCMC chains on NERSC
 
 A NERSC job script template, named `nersc_perlmutter_job_template.sb`, is also included.
 
