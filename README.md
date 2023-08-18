@@ -1,5 +1,7 @@
 # Readme for HDLike
 
+This is a mock CMB-HD likelihood including lensed and delensed $TT/TE/EE/BB$ CMB + lensing $\kappa\kappa$ spectra from multipoles 30 to 20,000.  We also include a mock DESI BAO likelihood. The likelihood can be used with Cobaya.  Please cite MacInnis, Sehgal, and Rothermel (2023).
+
 
 ## Installation of likelihood
 
@@ -36,7 +38,7 @@ To test the likelihood, run the following command:
 python test_hdlike.py
 ```
 
-You can also add a flag to test the lensed data, data including baryonic feedback effects, and/or include DESI BAO by running the following commands: 
+The test code above assumes the input mock CMB-HD data contains delensed CMB spectra with no baryonic feedback and no DESI BAO.  You can also add a flag to test the lensed CMB spectra, spectra including baryonic feedback effects, and/or include DESI BAO by running the following commands:
 
 ```
 python test_hdlike.py --lensed
@@ -122,14 +124,14 @@ If you have your own Cobaya configuration `.yaml` file already, you can use the 
 
 #### To add the CMB-HD likelihood
 
-To use the CMB-HD delensed $TT/TE/EE/BB$ CMB + $\kappa\kappa$ data, you only need to mention HDLike in your Cobaya configuration `.yaml` file or python dictionary, under the `likelihood` block. For example, if running Cobaya from a `.yaml` file, your `likelihood` block would be
+To use the CMB-HD delensed $TT/TE/EE/BB$ CMB + $\kappa\kappa$ mock spectra and covariance matrix, you only need to mention HDLike in your Cobaya configuration `.yaml` file or python dictionary, under the `likelihood` block. For example, if running Cobaya from a `.yaml` file, your `likelihood` block would be
 
 ```
 likelihood:
 	hdlike.hdlike.HDLike:
 ```
 
-To instead use CMB-HD lensed $TT/TE/EE/BB$ CMB + $\kappa\kappa$ data, set the option `delensed: False` under HDLike in the `likelihood` block:
+To instead use CMB-HD lensed $TT/TE/EE/BB$ CMB + $\kappa\kappa$ mock spectra and covariance matrix, set the option `delensed: False` under HDLike in the `likelihood` block:
 
 ```
 likelihood:
@@ -137,7 +139,7 @@ likelihood:
 		delensed: False
 ```
 
-Additionally, you can change the maximum multipole for the CMB or lensing data by setting the option `lmax` or `Lmax`, respectively, to an integer below the default `lmax = 20100` or `Lmax = 20100`. The minimum multipole for all spectra is fixed to 30. You can exclude the lensing power spectrum data by setting the option `use_cmb_lensing_spectrum: False`, or exclude the CMB $TT/TE/EE/BB$ data by setting the option `use_cmb_power_spectra: False`.
+Additionally, you can change the maximum multipole for the CMB or lensing mock spectra and covariance matrix by setting the option `lmax` or `Lmax`, respectively, to an integer below the default `lmax = 20100` or `Lmax = 20100`. The minimum multipole for all spectra is fixed to 30. You can exclude the lensing power spectrum data by setting the option `use_cmb_lensing_spectrum: False`, or exclude the CMB $TT/TE/EE/BB$ data by setting the option `use_cmb_power_spectra: False`.
 
 A basic example YAML file is provided, named `example_cmbhd.yaml`. The proposal widths of parameters in the `parameters` block were obtained from a CMB-HD Fisher matrix, located in the `hdlike/data/proposal_cov/from_fisher` directory. We also provide a few proposal matrices from MCMC runs in the `hdlike/data/proposal_cov/from_chains` directory.
 
