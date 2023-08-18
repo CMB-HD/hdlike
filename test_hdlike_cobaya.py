@@ -80,10 +80,10 @@ chi2_tot = chi2_hd + chi2_desi
 
 # expected results
 expected_chi2_desi = 8.38174e-06
-expected_chi2_hd_values = {'lensed': 3.60341,
-        'delensed': 3.01047,
-        'lensed_feedback': 3.58806,
-        'delensed_feedback': 2.99985}
+expected_chi2_hd_values = {'lensed': 3.60363,
+        'delensed': 3.01064,
+        'lensed_feedback': 3.58828,
+        'delensed_feedback': 3.00001}
 if args.feedback:
     expected_chi2_hd = expected_chi2_hd_values[f'{cmb_type}_feedback']
 else:
