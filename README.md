@@ -89,6 +89,17 @@ sbatch nersc_perlmutter_job_template.sb
 (You should include the name of the CMB project to which you are charging your hours somewhere in the `job-name`; e.g., `#SBATCH --job-name=hdlike_CMBEXP`. Please see below for more information about using Cobaya on NERSC.)
 
 
+### Running MCMC chains on NERSC with Cobaya
+
+A NERSC job script template, named `nersc_perlmutter_job_template.sb`, is also included.
+
+Some NERSC/Perlmutter-specific notes:
+- You must provide the name of the allocation account being used on the line `#SBATCH --account=` (after the `=` sign; e.g. `#SBATCH --account=mp107` for CMB).
+- You _should_ include the name of the CMB project you are charging your hours to somewhere in the `job-name` (e.g., `#SBATCH --job-name=hdlike_CMBEXP`). 
+- If you're activating a conda environment within the job script, you need to use `source activate` instead of the `conda activate` used on the login nodes.
+- You'll need to follow the instructions in the [NERSC documentation](https://docs.nersc.gov/development/languages/python/using-python-perlmutter/#mpi4py-on-perlmutter) to use MPI with `mpi4py`.
+- You'll likely want to save your chains in your `SCRATCH` directory, but be aware that this is not permanent storage: see the [NERSC documentation](https://docs.nersc.gov/filesystems/perlmutter-scratch/) for more details.
+
 ---
 
 ## Additional helpful information
@@ -161,14 +172,3 @@ likelihood:
 
 The example YAML file `example_cmbhd.yaml` contains a sample `bao.generic` block, but you must replace `/PATH/TO/` with the absolute path to your `hdlike` directory (the directory in which this README is located). See the [Cobaya docs](https://cobaya.readthedocs.io/en/latest/likelihood_bao.html) for more information about the generic BAO likelihood.
 
-
-### Running MCMC chains on NERSC with Cobaya
-
-A NERSC job script template, named `nersc_perlmutter_job_template.sb`, is also included.
-
-Some NERSC/Perlmutter-specific notes:
-- You must provide the name of the allocation account being used on the line `#SBATCH --account=` (after the `=` sign; e.g. `#SBATCH --account=mp107` for CMB).
-- You _should_ include the name of the CMB project you are charging your hours to somewhere in the `job-name` (e.g., `#SBATCH --job-name=hdlike_CMBEXP`). 
-- If you're activating a conda environment within the job script, you need to use `source activate` instead of the `conda activate` used on the login nodes.
-- You'll need to follow the instructions in the [NERSC documentation](https://docs.nersc.gov/development/languages/python/using-python-perlmutter/#mpi4py-on-perlmutter) to use MPI with `mpi4py`.
-- You'll likely want to save your chains in your `SCRATCH` directory, but be aware that this is not permanent storage: see the [NERSC documentation](https://docs.nersc.gov/filesystems/perlmutter-scratch/) for more details.

@@ -79,6 +79,11 @@ if desi_bao:
     desi_cov_file = data_path('mock_desi_bao_rs_over_DV_cov.txt')
     info['likelihood']['bao.generic'] = {'measurements_file': desi_data_file, 'cov_file': desi_cov_file}
 
+# if using model with baryonic feedback and not sampling the feedback parameter, make sure it's fixed.
+if baryonic_feedback:
+    if 'HMCode_logT_AGN' not in info['params'].keys():
+        info['params']['HMCode_logT_AGN'] = 7.8
+
 # where to save the Cobaya output and the YAML file
 root = f'cmbhd_{cmb_type}'
 if (lmax < defaults['lmax']) or (Lmax < defaults['Lmax']):
