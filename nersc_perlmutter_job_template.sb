@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#SBATCH --nodes=1
+#SBATCH --time=12:00:00
+#SBATCH --job-name=hdlike
+#SBATCH --qos=regular
+#SBATCH --constraint=cpu
+#SBATCH --account=mp107
+#SBATCH --licenses=SCRATCH
+
+# do any setup, e.g. activating a conda environment
+
+export OMP_NUM_THREADS=16
+# NOTE: the NERSC job script generator suggests setting the following two lines; 
+#       this worked well on cori, but I've found that the MCMC chains on perlmutter
+#       are unreasonably slow if they are used.
+#export OMP_PLACES=threads
+#export OMP_PROC_BIND=spread
+
+srun -n 8 -c 32 --cpu-bind=cores cobaya-run example_cmbhd.yaml -r 

@@ -1,0 +1,4 @@
+include README.md
+include hdlike/HDLike.yaml
+recursive-include hdlike/data *
+
