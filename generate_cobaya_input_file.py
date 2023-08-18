@@ -51,7 +51,7 @@ if 'classy' in info['theory'].keys():
     if delensed:
         raise ValueError("Cannot compute delensed power spectra using CLASS.")
     if baryonic_feedback:
-        raise ValueError("Cannot use the HMCode2020 baryonic feedback model with CLASS.")
+        warnings.warn("Note that the mock spectra use the HMCode2020 baryonic feedback model, which may not match the model in CLASS.")
 
 
 # update the `info` dict with the loaded settings
@@ -62,7 +62,11 @@ if baryonic_feedback:
 else:
     data_file = data_path(f'hd_binnedTheorySpectra_lmin30_lmax20k_Lmin30_Lmax20k_{cmb_type}.txt')
     hmcode_version = 'mead2016'
-info['theory']['camb']['extra_args']['halofit_version'] = hmcode_version
+
+if 'camb' in info['theory'].keys():
+    info['theory']['camb']['extra_args']['halofit_version'] = hmcode_version
+elif 'classy' in info['theory'].keys():
+    info['theory']['classy']['extra_args']['non linear'] = 'hmcode'
 
 hdlike_info = {'delensed': delensed,
                'data_file': data_file, # covmat is set within likelihood
