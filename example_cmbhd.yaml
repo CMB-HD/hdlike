@@ -48,16 +48,6 @@ theory:
       - 20
       - 100
 
-### CLASS settings: note CLASS will not work with ‘delensed: True’ and does not have the HMCode2020+feedback model on which the hdlike mock feedback data is based. Also note that you may have to modify the `params` block below.
-#theory:
-#  classy:
-#    extra_args:
-#      non linear: hmcode
-#      nonlinear_min_k_max: 20
-#      N_ncdm: 1
-#      N_ur: 2.0328
-
-
 ### varied, fixed, and derived parameters
 params:
   logA:
