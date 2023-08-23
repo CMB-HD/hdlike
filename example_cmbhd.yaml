@@ -2,7 +2,7 @@
 # NOTE: if you would like to modify these settings, please create a copy of this file to use.
 
 
-## NOTE: put the path to your output here (by default, it is the current working directory); 
+## NOTE: indicate where the products will be written and a prefix for their name
 ##  see https://cobaya.readthedocs.io/en/latest/output.html#output-shell
 output: cmbhd
 
@@ -21,9 +21,11 @@ likelihood:
     use_cmb_power_spectra: True
     use_cmb_lensing_spectrum: True
   ## To include DESI BAO data, un-comment the `bao.generic` block below.
-  ## NOTE that you may need to provide the *absolute* path to the 
-  ##      `measurements_file` and `cov_file` below; here, they are given
-  ##      by their relative paths to this file.
+  ## NOTE that you must provide the *absolute* path to the 
+  ##      `measurements_file` and `cov_file` below. Here, they are given
+  ##      by their paths relative to the location of `example_cmbhd.yaml`. 
+  ##      Note that in the test python script `test_hdlike_cobaya.py`,
+  ##      the absolute paths are found and passed to Cobaya.
   #bao.generic:
   #  measurements_file: hdlike/data/mock_desi_bao_rs_over_DV_data.txt
   #  cov_file: hdlike/data/mock_desi_bao_rs_over_DV_cov.txt

@@ -77,7 +77,7 @@ Note that `test_hdlike_cobaya.py` loads information from the file `example_cmbhd
 MCMC chains can be run with the following command:
 
 ```
-cobaya-run example_cmbhd.yaml
+cobaya-run your_cmbhd.yaml
 ```
 
 To run multiple chains with MPI you should follow the instructions for your machine.  For NERSC, we provide a job script template, named `nersc_perlmutter_job_template.sb` (see the NERSC section below) that can be run from this `hdlike` directory with the following command:
@@ -88,6 +88,7 @@ sbatch nersc_perlmutter_job_template.sb
 
 (You should include the name of the CMB project to which you are charging your hours somewhere in the `job-name`; e.g., `#SBATCH --job-name=hdlike_CMBEXP`. Please see below for more information about using Cobaya on NERSC.)
 
+To analyze the MCMC chains, we provide an example Jupyter notebook named `hdlike_cobaya_results.ipynb`. We also provide a set of pre-computed chains that can be used to test the notebook.
 
 ## Running MCMC chains on NERSC
 

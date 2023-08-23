@@ -1,0 +1,231 @@
+theory:
+  camb:
+    version: 1.4.0
+    path: null
+    speed: 0.3
+    stop_at_error: false
+    extra_args:
+      bbn_predictor: PArthENoPE_880.2_standard.dat
+      NonLinear: NonLinear_both
+      halofit_version: mead2016
+      lens_potential_accuracy: 30
+      lens_margin: 2050
+      AccuracyBoost: 1.1
+      lSampleBoost: 3.0
+      lAccuracyBoost: 3.0
+      DoLateRadTruncation: false
+      num_massive_neutrinos: 1
+      theta_H0_range:
+      - 20
+      - 100
+    ignore_obsolete: false
+    use_renames: false
+    external_primordial_pk: false
+    renames:
+      omegabh2: ombh2
+      omegach2: omch2
+      omegal: omega_de
+      omegak: omk
+      yhe: YHe
+      yheused: YHe
+      YpBBN: Y_p
+    input_params:
+    - As
+    - ns
+    - cosmomc_theta
+    - ombh2
+    - omch2
+    - mnu
+    - nnu
+    - tau
+    output_params:
+    - H0
+    - sigma8
+likelihood:
+  hdlike.hdlike.HDLike:
+    delensed: true
+    data_file: null
+    covmat_file: null
+    bin_file: null
+    recon_noise_file: null
+    lmin: 30
+    lmax: 20100
+    Lmax: 20100
+    has_2pt: true
+    has_4pt: true
+    use_2pt: true
+    use_4pt: true
+    type: []
+    speed: -1
+    stop_at_error: false
+    version: null
+    input_params: []
+    output_params: []
+  bao.generic:
+    measurements_file: /global/homes/m/miriam/hdlike/hdlike/data/mock_desi_bao_rs_over_DV_data.txt
+    cov_file: /global/homes/m/miriam/hdlike/hdlike/data/mock_desi_bao_rs_over_DV_cov.txt
+    invcov_file: /full/path/to/myBAO_inv.cov
+    rs_fid: null
+    speed: 2500
+    type: BAO
+    rs_rescale: null
+    prob_dist: null
+    redshift: null
+    observable_1: null
+    observable_2: null
+    observable_3: null
+    grid_file: null
+    stop_at_error: false
+    version: null
+    input_params: []
+    output_params: []
+params:
+  logA:
+    prior:
+      min: 2
+      max: 4
+    ref:
+      dist: norm
+      loc: 3.05
+      scale: 0.001
+    proposal: 0.0003
+    latex: \log(10^{10} A_\mathrm{s})
+  As:
+    value: 'lambda logA: 1e-10*np.exp(logA)'
+    latex: A_\mathrm{s}
+    derived: true
+  ns:
+    prior:
+      min: 0.8
+      max: 1.2
+    ref:
+      dist: norm
+      loc: 0.965
+      scale: 0.002
+    proposal: 0.0002
+    latex: n_\mathrm{s}
+  theta_MC_100:
+    prior:
+      min: 0.5
+      max: 10
+    ref:
+      dist: norm
+      loc: 1.04092
+      scale: 0.0004
+    proposal: 5.0e-05
+    latex: 100\theta_\mathrm{MC}
+    drop: true
+    renames: theta
+  cosmomc_theta:
+    value: 'lambda theta_MC_100: 1.e-2*theta_MC_100'
+    derived: false
+  H0:
+    min: 20
+    max: 100
+    latex: H_0
+    derived: true
+  ombh2:
+    prior:
+      min: 0.005
+      max: 0.1
+    ref:
+      dist: norm
+      loc: 0.0224
+      scale: 5.0e-05
+    proposal: 7.8e-06
+    latex: \Omega_\mathrm{b} h^2
+    renames:
+    - omegabh2
+  omch2:
+    prior:
+      min: 0.001
+      max: 0.99
+    ref:
+      dist: norm
+      loc: 0.12
+      scale: 0.0005
+    proposal: 2.2e-05
+    latex: \Omega_\mathrm{c} h^2
+    renames:
+    - omegach2
+  mnu:
+    prior:
+      min: 0
+      max: 5
+    ref:
+      dist: norm
+      loc: 0.06
+      scale: 0.01
+    proposal: 0.001
+    latex: \sum m_\nu
+  nnu:
+    prior:
+      min: 0.05
+      max: 10
+    ref:
+      dist: norm
+      loc: 3.046
+      scale: 0.005
+    proposal: 0.0013
+    latex: N_\mathrm{eff}
+  tau:
+    prior:
+      dist: norm
+      loc: 0.054
+      scale: 0.007
+    ref:
+      dist: norm
+      loc: 0.054
+      scale: 0.006
+    proposal: 0.0002
+    latex: \tau_\mathrm{reio}
+  sigma8:
+    latex: \sigma_8
+    derived: true
+  chi2__BAO:
+    latex: \chi^2_\mathrm{BAO}
+    derived: true
+sampler:
+  mcmc:
+    burn_in: 0
+    max_tries: 40d
+    covmat: /global/homes/m/miriam/hdlike/proposal_cov/from_chains/hd_delensed_desi_bao_lcdm_nnu_mnu_defaultacc.txt
+    covmat_params: null
+    proposal_scale: 2.4
+    output_every: 60s
+    learn_every: 40d
+    temperature: 1
+    learn_proposal: true
+    learn_proposal_Rminus1_max: 2.0
+    learn_proposal_Rminus1_max_early: 30.0
+    learn_proposal_Rminus1_min: 0.0
+    max_samples: .inf
+    Rminus1_stop: 0.01
+    Rminus1_cl_stop: 0.2
+    Rminus1_cl_level: 0.95
+    Rminus1_single_split: 4
+    measure_speeds: true
+    oversample_power: 0.4
+    oversample_thin: true
+    drag: false
+    blocking:
+    - - 1
+      - - theta_MC_100
+        - ombh2
+        - omch2
+        - mnu
+        - nnu
+        - tau
+    - - 1
+      - - logA
+        - ns
+    callback_function: null
+    callback_every: null
+    seed: null
+    check_every: null
+    oversample: null
+    drag_limits: null
+    fallback_covmat_scale: 4
+    version: 3.3.1
+output: cmbhd_delensed_desi
+version: 3.3.1
