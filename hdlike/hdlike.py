@@ -281,10 +281,96 @@ class HDData:
                  use_cmb_power_spectra=True, 
                  use_cmb_lensing_spectrum=True,
                  use_desi_bao=False): #NOTE: set `use_desi_bao=False` when using Cobaya 
-        """Initialize the CMB-HD binned lensed or delensed data spectra and 
-        covariance matrix.
+        """Initialize the CMB-HD likelihood with the binned lensed or delensed 
+        data spectra and covariance matrix.
+
+        Parameters
+        ----------
+        lmin : int, default=30
+            The minimum multipole used in the data files, which sets the lowest
+            bin edge. All CMB power spectra and CMB lensing spectra, and the 
+            corresponding covariance matrix, are assumed to start at the bin edge 
+            corresponding to this value.
+        lmax, Lmax : int, default=20100
+            The maximum multipole used in the CMB power spectra (`lmax`) and CMB 
+            lensing power spectrum (`Lmax`). These can be set to a lower value than 
+            the default, which will cut the mock spectra and covariance matrix. 
+        delensed : bool, default=True
+            Whether to use delensed data (binned CMB power spectra and covariance
+            matrix for the delensed case), as opposed to lensed data.
+        baryonic_feedback: bool, default=False
+            Whether to use binned power spectra that were calculated using the
+            HMCode2020 non-linear model that includes the effect of baryonic
+            feedback, as opposed to the HMCode2016 CDM-only model.
+        data_file : str, default=None
+            The path to and name of the file containing the binned power 
+            spectra as a single one-dimensional array. 
+            If not specified, the default file is used.
+            The CMB TT, TE, EE, and BB spectra are expected to be in units 
+            of uK^2, without any multipole factor of ell * (ell + 1) / 2pi 
+            applied. The CMB lensing spectrum is expected to be in the form 
+            C_L^kk = [L(L+1)]^2 C_L^phiphi / 4, where L is the lensing 
+            multipole and C_L^phiphi is the power spectrum of the projected 
+            lensing potential. The order of the spectra is expected to be
+            TT, TE, EE, BB, kk.
+        cov_file : str, default=None
+            The path to and name of the file containing the binned covariance
+            matrix. If not specified, the default file is used.
+            The covariance matrix should have blocks for the covariance between
+            different spectra, i.e. TT x TT for cov(C_l1^TT, C_l2^TT). These
+            blocks should be in the same order and binned in the same way as
+            the `data_file`.
+        bin_file : str, default=None
+            The path to and name of the file containing the bin edges, used to
+            bin the power spectra and covariance matrix. The file should contain 
+            a one-dimensional array of lower bin edges, except the last entry, 
+            which should be the upper edge of the last bin. If not specified, 
+            the default is used.
+        recon_noise_file : str, default=None
+            The path  to and name of the file containing the unbinned lensing 
+            reconstruction noise spectrum, in the same convention as the 
+            lensing power spectrum. The first column in the file should hold 
+            the lensing multipoles, and the second should hold the value of the
+            noise at that multipole. This should be the iteratively delensed 
+            residual lensing noise spectrum and is only used to obtain delensed
+            theory spectra from CAMB. If not specified, the default file is 
+            used.
+        has_cmb_power_spectra : bool, default=True
+            Whether the binned spectra and covariance matrix have blocks for 
+            the TT, TE, EE, and BB CMB power spectra.
+        has_cmb_lensing_spectrum : bool, default=True
+            Whether the binned spectra and covariance matrix have (a) block(s)
+            for the lensing 'kk' power spectrum.
+        use_cmb_power_spectra : bool, default=True
+            Whether to include the TT, TE, EE, and BB CMB power spectra in
+            the likelihood calculation, if applicable.
+        use_cmb_lensing_spectrum : bool, default=True
+            Whether to include the CMB lensing power spectrum in the likelihood
+            calculation, if applicable.
+        use_desi_bao : bool, default=False
+            Whether to load in the mock DESI BAO data. Note that the likelihood 
+            calculation for the mock BAO data is separate from the calculation for
+            the mock CMB data.
+
+        Raises
+        ------
+        ValueError
+            If the settings for `use_cmb_power_spectra` and 
+            `use_cmb_lensing_spectrum` are both `False`, or if either is
+            inconsistent with the settings `has_cmb_power_spectra` and 
+            `has_cmb_lensing_spectrum`.
+
+
+        Note
+        ----
+        You do not have to pass file names if you are using the mock data and
+        covariance matrices provided with `hdlike`; they are found automatically 
+        in the functions `hdlike.get_hd_filenames` and `hdlike.get_desi_filenames`. 
+        The option to use alternative mock data is included for flexibility, but 
+        you must ensure that they are binned consistently with the `hdlike` 
+        covariance matrix, have the correct ordering, and follow all other conventions 
+        stated above.
         """
-        # TODO: finish docstring
         self.lmin = lmin
         self.lmax = lmax
         self.Lmax = Lmax
