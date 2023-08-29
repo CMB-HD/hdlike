@@ -92,14 +92,14 @@ To analyze the MCMC chains, we provide an example Jupyter notebook named `hdlike
 
 ## Running MCMC chains on NERSC
 
-A NERSC job script template, named `nersc_perlmutter_job_template.sb`, is also included.
+A NERSC job script template, named `nersc_perlmutter_job_template.sb`, is also included. 
 
 Some NERSC/Perlmutter-specific notes:
+- You'll need to follow the instructions in the [NERSC documentation](https://docs.nersc.gov/development/languages/python/using-python-perlmutter/#mpi4py-on-perlmutter) to use MPI with `mpi4py`.
 - You must provide the name of the allocation account being used on the line `#SBATCH --account=` (after the `=` sign; e.g. `#SBATCH --account=mp107` for CMB).
 - You _should_ include the name of the CMB project you are charging your hours to somewhere in the `job-name` (e.g., `#SBATCH --job-name=hdlike_CMBEXP`). 
 - If you're activating a conda environment within the job script, you need to use `source activate` instead of the `conda activate` used on the login nodes.
-- You'll need to follow the instructions in the [NERSC documentation](https://docs.nersc.gov/development/languages/python/using-python-perlmutter/#mpi4py-on-perlmutter) to use MPI with `mpi4py`.
-- You'll likely want to save your chains in your `SCRATCH` directory, but be aware that this is not permanent storage: see the [NERSC documentation](https://docs.nersc.gov/filesystems/perlmutter-scratch/) for more details.
+- Save your chains in your `SCRATCH` directory. However, be aware that this is not permanent storage: see the [NERSC documentation](https://docs.nersc.gov/filesystems/perlmutter-scratch/) for more details. This will involve modifying the `output` path in `your_cmbhd.yaml`.
 
 ---
 

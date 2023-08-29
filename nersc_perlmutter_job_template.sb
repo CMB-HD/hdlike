@@ -17,4 +17,5 @@ export OMP_NUM_THREADS=16
 #export OMP_PLACES=threads
 #export OMP_PROC_BIND=spread
 
-srun -n 8 -c 32 --cpu-bind=cores cobaya-run example_cmbhd.yaml -r 
+# your chains will be placed in your `$SCRATCH` directory in `$SCRATCH/hdlike_chains`.
+srun -n 8 -c 32 --cpu-bind=cores cobaya-run example_cmbhd.yaml -o $SCRATCH/hdlike_chains/cmbhd -r 
