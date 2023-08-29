@@ -4,7 +4,7 @@
 
 ## NOTE: indicate where the products will be written and a prefix for their name
 ##  see https://cobaya.readthedocs.io/en/latest/output.html#output-shell
-output: cmbhd
+output: hdlike_chains/cmbhd
 
 ## this will automatically resume previously-run MCMC chains with the same 
 ##  `output` path that you've provided above
