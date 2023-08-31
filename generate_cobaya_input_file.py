@@ -112,15 +112,15 @@ print(f"The Cobaya output will be saved in the directory `{output_dir}`, with fi
 if use_fisher_proposal_widths:
     # get proposal widths from inverse of diagonal elements of Fisher matrix
     fisher_proposal_path = lambda x: os.path.join(data_path('proposal_cov/from_fisher/'), x)
-    
-    fisher_pcov_fnames = {'delensed': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_delensed_lcdm_neff_mnu_theta_pcov.txt'),
-                          'delensed_feedback': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_delensed_lcdm_neff_mnu_feedback_pcov.txt'),
-                          'delensed_bao': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_delensed_desi_bao_lcdm_neff_mnu_pcov.txt'),
-                          'delensed_bao_feedback': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_delensed_desi_bao_lcdm_neff_mnu_feedback_pcov.txt'),
-                          'lensed': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_lensed_lcdm_neff_mnu_theta_pcov.txt'),
-                          'lensed_feedback': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_lensed_lcdm_neff_mnu_feedback_pcov.txt'),
-                          'lensed_bao': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_lensed_desi_bao_lcdm_neff_mnu_pcov.txt'),
-                          'lensed_bao_feedback': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_lensed_desi_bao_lcdm_neff_mnu_feedback_pcov.txt')}
+   
+    fisher_pcov_fnames = {'delensed': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_delensed_pcov.txt'),
+                          'delensed_feedback': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_delensed_feedback_pcov.txt'),
+                          'delensed_bao': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_delensed_desi_bao_pcov.txt'),
+                          'delensed_bao_feedback': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_delensed_desi_bao_feedback_pcov.txt'),
+                          'lensed': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_lensed_pcov.txt'),
+                          'lensed_feedback': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_lensed_feedback_pcov.txt'),
+                          'lensed_bao': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_lensed_desi_bao_pcov.txt'),
+                          'lensed_bao_feedback': fisher_proposal_path('hd_fsky0pt6_lmin30_lmax20k_Lmin30_Lmax20k_withFG_lensed_desi_bao_feedback_pcov.txt')}
     
     fisher_pcov_key = cmb_type
     if desi_bao:
@@ -154,8 +154,14 @@ if use_fisher_proposal_widths:
             print(f"Set the proposal matrix to {info['sampler']['mcmc']['covmat']}")
         else:
             warnings.warn('No proposal matrix available; setting the `proposal` width for each parameter from the corresponding Fisher matrix.')
-            for param in proposal_widths.keys():
+            # get a list of sampled parameters
+            sampled_params = []
+            for param in info['params'].keys():
                 if type(info['params'][param]) == dict:
+                    if 'prior' in info['params'][param].keys():
+                        sampled_params.append(param)
+            for param in proposal_widths.keys():
+                if param in sampled_params:
                     info['params'][param]['proposal'] = proposal_widths[param]
 
 elif 'mcmc' in info['sampler'].keys():
