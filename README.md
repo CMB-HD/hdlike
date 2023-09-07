@@ -1,6 +1,6 @@
 # Readme for HDLike
 
-This is a mock CMB-HD likelihood including lensed and delensed $TT/TE/EE/BB$ CMB + lensing $\kappa\kappa$ spectra from multipoles 30 to 20,000.  We also include a mock DESI BAO likelihood. The likelihood can be used with Cobaya.  Please cite MacInnis, Sehgal, and Rothermel (2023).
+This is a mock CMB-HD likelihood including lensed and delensed $TT/TE/EE/BB$ CMB + lensing $\kappa\kappa$ spectra from multipoles 30 to 20,000.  We also include a mock DESI BAO likelihood. The likelihood can be used with Cobaya.  Please cite [MacInnis, Sehgal, and Rothermel (2023)](https://arxiv.org/abs/2309.03021).
 
 
 ## Installation of likelihood
