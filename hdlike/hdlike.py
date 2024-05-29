@@ -2,26 +2,20 @@ import os
 import warnings
 import numpy as np
 from cobaya.likelihood import Likelihood
+from hd_mock_data import hd_data
 
 
 # ---- default data files ----
 
-def get_hd_filenames(delensed=True, baryonic_feedback=False):
+def get_hd_filenames(delensed=True, baryonic_feedback=False, hd_data_version='latest'):
     """Returns the file names of the CMB-HD lensed or delensed data."""
-    # default data directory, relative to this file:
-    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/')
-    data_path = lambda fname: os.path.join(data_dir, fname)
-    # file names
+    # get the file names from `HDMockData`:
+    hd_datalib = hd_data.HDMockData(version=hd_data_version)
     cmb_type = 'delensed' if delensed else 'lensed'
-    ell_info = 'lmin30_lmax20k'
-    Linfo = 'Lmin30_Lmax20k'
-    bin_file = data_path('bin_edges.txt')
-    if baryonic_feedback:
-        data_file = data_path(f'hd_binnedTheorySpectra_{ell_info}_{Linfo}_{cmb_type}_feedback.txt')
-    else:
-        data_file = data_path(f'hd_binnedTheorySpectra_{ell_info}_{Linfo}_{cmb_type}.txt')
-    covmat_file = data_path(f'hd_covmat_{ell_info}_{Linfo}_{cmb_type}_withFG.txt')
-    recon_noise_file = data_path(f'hd_lensingNoise_{Linfo}_withFG.txt')
+    bin_file = hd_datalib.bin_edges_fname()
+    data_file = hd_datalib.mcmc_bandpowers_fname(cmb_type, baryonic_feedback=baryonic_feedback)
+    covmat_file = hd_datalib.block_covmat_fname(cmb_type)
+    recon_noise_file = hd_datalib.lensing_noise_fname()
     return bin_file, data_file, covmat_file, recon_noise_file
 
 
@@ -280,7 +274,8 @@ class HDData:
                  has_cmb_lensing_spectrum=True, 
                  use_cmb_power_spectra=True, 
                  use_cmb_lensing_spectrum=True,
-                 use_desi_bao=False): #NOTE: set `use_desi_bao=False` when using Cobaya 
+                 use_desi_bao=False, #NOTE: set `use_desi_bao=False` when using Cobaya 
+                 hd_data_version='latest'):
         """Initialize the CMB-HD likelihood with the binned lensed or delensed 
         data spectra and covariance matrix.
 
@@ -351,6 +346,13 @@ class HDData:
             Whether to load in the mock DESI BAO data. Note that the likelihood 
             calculation for the mock BAO data is separate from the calculation for
             the mock CMB data.
+        hd_data_version: str, default='latest'
+            The CMB-HD data version to use. This determines which CMB-HD 
+            covariance matrix, bandpowers, and lensing noise (used to 
+            calculate delensed theory) is used. By default, the latest  
+            version is used. To reproduce the results in 
+            MacInnis et. al. (2023), use `hd_data_version='v1.0'`. 
+            See the `hdMockData` repository for a list of versions.
 
         Raises
         ------
@@ -389,7 +391,7 @@ class HDData:
             errmsg = "You set `use_cmb_lensing_spectrum: True` and `has_cmb_lensing_spectrum: False`. To use CMB lensing data, you must also set `has_cmb_lensing_spectrum: True."
             raise ValueError(errmsg)
         # default file names
-        default_bin_file, default_data_file, default_covmat_file, default_recon_noise_file = get_hd_filenames(delensed=delensed, baryonic_feedback=baryonic_feedback)
+        default_bin_file, default_data_file, default_covmat_file, default_recon_noise_file = get_hd_filenames(delensed=delensed, baryonic_feedback=baryonic_feedback, hd_data_version=hd_data_version)
         # if `delensed = True`, and the user provides either a new `data_file`
         # or a new `recon_noise_file` (used for delensed theory) but not both,
         # warn the user that their theory calculation may not match the data
@@ -677,7 +679,8 @@ class HDLike(Likelihood):
                               has_cmb_power_spectra=self.has_cmb_power_spectra, 
                               has_cmb_lensing_spectrum=self.has_cmb_lensing_spectrum,
                               use_cmb_power_spectra=self.use_cmb_power_spectra, 
-                              use_cmb_lensing_spectrum=self.use_cmb_lensing_spectrum)
+                              use_cmb_lensing_spectrum=self.use_cmb_lensing_spectrum,
+                              hd_data_version=self.hd_data_version)
     
 
     def get_requirements(self):

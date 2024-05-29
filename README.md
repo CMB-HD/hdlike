@@ -8,7 +8,7 @@ This is a mock CMB-HD likelihood including lensed and delensed $TT/TE/EE/BB$ CMB
 
 ### Installation requirements
 
-To use the CMB-HD likelihood, you must install Python version >= 3 and [NumPy](https://numpy.org/).
+To use the CMB-HD likelihood, you must install Python version >= 3, [NumPy](https://numpy.org/), and [hdMockData](https://github.com/CMB-HD/hdMockData).
 
 To test the likelihood by running `test_hdlike.py`, you must also install [CAMB](https://camb.readthedocs.io/en/latest/).
 

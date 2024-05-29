@@ -47,7 +47,6 @@ if args.desi:
     desi_cov_file = data_path('mock_desi_bao_rs_over_DV_cov.txt')
     info['likelihood']['bao.generic'] = {'measurements_file': desi_data_file, 'cov_file': desi_cov_file}
 if args.feedback:
-    info['likelihood']['hdlike.hdlike.HDLike']['data_file'] = data_path(f'hd_binnedTheorySpectra_lmin30_lmax20k_Lmin30_Lmax20k_{cmb_type}_feedback.txt')
     info['theory']['camb']['extra_args']['halofit_version'] = 'mead2020_feedback'
 
 # use the `evaluate` sampler at a fixed cosmology:
@@ -80,10 +79,10 @@ chi2_tot = chi2_hd + chi2_desi
 
 # expected results
 expected_chi2_desi = 8.38174e-06
-expected_chi2_hd_values = {'lensed': 3.60363,
-        'delensed': 3.01064,
-        'lensed_feedback': 3.58828,
-        'delensed_feedback': 3.00001}
+expected_chi2_hd_values = {'lensed': 6.21009,
+        'delensed': 3.41060,
+        'lensed_feedback': 6.17882,
+        'delensed_feedback': 3.39521}
 if args.feedback:
     expected_chi2_hd = expected_chi2_hd_values[f'{cmb_type}_feedback']
 else:

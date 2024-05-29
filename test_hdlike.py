@@ -35,10 +35,6 @@ if args.desi:
 if args.feedback:
     print('Using a model with baryonic feedback.')
 
-# get the path to the hdlike files
-data_dir = os.path.join(os.path.dirname(hdlike.__file__), 'data/')
-data_path = lambda x: os.path.join(data_dir, x)
-
 # initialize the HD likelihood
 hd_likelihood = hdlike.HDData(delensed=(not args.lensed), baryonic_feedback=args.feedback, use_desi_bao=args.desi)
 

@@ -17,6 +17,7 @@ defaults = {'delensed': True,
             'lmax': 20100, 'Lmax': 20100,
             'use_cmb_power_spectra': True, 
             'use_cmb_lensing_spectrum': True,
+            'hd_data_version': 'latest',
             'desi_bao': False,
             'use_fisher_proposal_widths': False,
             'output_dir': os.getcwd(), 'output_root': None,
@@ -33,6 +34,7 @@ lmax = hdlike_settings['lmax']
 Lmax = hdlike_settings['Lmax']
 use_cmb_power_spectra = hdlike_settings['use_cmb_power_spectra']
 use_cmb_lensing_spectrum = hdlike_settings['use_cmb_lensing_spectrum']
+hd_data_version = hdlike_settings['hd_data_version']
 desi_bao = hdlike_settings['desi_bao']
 use_fisher_proposal_widths = hdlike_settings['use_fisher_proposal_widths']
 output_dir = hdlike_settings['output_dir'] 
@@ -57,10 +59,8 @@ if 'classy' in info['theory'].keys():
 # update the `info` dict with the loaded settings
 cmb_type = 'delensed' if delensed else 'lensed'
 if baryonic_feedback:
-    data_file = data_path(f'hd_binnedTheorySpectra_lmin30_lmax20k_Lmin30_Lmax20k_{cmb_type}_feedback.txt')
     hmcode_version = 'mead2020_feedback'
 else:
-    data_file = data_path(f'hd_binnedTheorySpectra_lmin30_lmax20k_Lmin30_Lmax20k_{cmb_type}.txt')
     hmcode_version = 'mead2016'
 
 if 'camb' in info['theory'].keys():
@@ -69,10 +69,9 @@ elif 'classy' in info['theory'].keys():
     info['theory']['classy']['extra_args']['non linear'] = 'hmcode'
 
 hdlike_info = {'delensed': delensed,
-               'data_file': data_file, # covmat is set within likelihood
                'baryonic_feedback': baryonic_feedback,
                'lmax': lmax, 'Lmax': Lmax,
-               'use_cmb_power_spectra': use_cmb_power_spectra, 'use_cmb_lensing_spectrum': use_cmb_lensing_spectrum}
+               'use_cmb_power_spectra': use_cmb_power_spectra, 'use_cmb_lensing_spectrum': use_cmb_lensing_spectrum, 'hd_data_version': hd_data_version}
 if 'likelihood' not in info.keys():
     info['likelihood'] = {'hdlike.hdlike.HDLike': hdlike_info}
 else:

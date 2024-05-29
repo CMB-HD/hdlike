@@ -49,6 +49,13 @@ use_cmb_lensing_spectrum:
 #  CMB and CMB lensing data are used.
 use_cmb_power_spectra:
 
+# To use a previous version of the CMB-HD mock data, set the `hd_data_version`
+# to the version you would like to use. See the readme file in the `hdMockData`
+# repository for more information. By default, the latest data will be used.
+# If you would like to reproduce the results in MacInnis et. al. (2023),
+# set `hd_data_version = v1.0`
+hd_data_version:
+
 
 # --- DESI BAO data ---
 # Set `desi_bao: True` to use DESI BAO data, otherwise set `desi_bao: False`.

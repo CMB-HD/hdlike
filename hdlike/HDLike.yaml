@@ -20,6 +20,12 @@ use_cmb_lensing_spectrum: True
 lmax: 20100
 Lmax: 20100
 
+# set the version of the CMB-HD data to use:
+# by default, the latest CMB-HD data is used. it is loaded using `hdMockData`.
+# if you would like to reproduce a specific set of results, you can use the
+#  corresponding `hd_data_version`. see the readme in the `hdMockData` repository
+#  for more information about each version: github.com/CMB-HD/hdMockData
+hd_data_version: latest
 
 # --- data files: leave blank to use HD data ---
 # NOTE that, if you provide alternative filenames for, e.g., the binned data spectra,
