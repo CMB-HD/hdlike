@@ -2,31 +2,13 @@ import os
 import warnings
 import numpy as np
 from cobaya.likelihood import Likelihood
-from hd_mock_data import hd_data
-
-
-# ---- default data files ----
-
-def get_hd_filenames(delensed=True, baryonic_feedback=False, hd_data_version='latest'):
-    """Returns the file names of the CMB-HD lensed or delensed data."""
-    # get the file names from `HDMockData`:
-    hd_datalib = hd_data.HDMockData(version=hd_data_version)
-    cmb_type = 'delensed' if delensed else 'lensed'
-    bin_file = hd_datalib.bin_edges_fname()
-    data_file = hd_datalib.mcmc_bandpowers_fname(cmb_type, baryonic_feedback=baryonic_feedback)
-    covmat_file = hd_datalib.block_covmat_fname(cmb_type)
-    recon_noise_file = hd_datalib.lensing_noise_fname()
-    return bin_file, data_file, covmat_file, recon_noise_file
-
-
-def get_desi_filenames():
-    """Returns the filenames of the mock DESI BAO data."""
-    # default data directory, relative to this file:
-    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/')
-    data_path = lambda fname: os.path.join(data_dir, fname)
-    data_file = data_path('mock_desi_bao_rs_over_DV_data.txt')
-    cov_file = data_path('mock_desi_bao_rs_over_DV_cov.txt')
-    return data_file, cov_file
+try:
+    from hd_mock_data import hd_data
+except ImportError:
+    hd_mock_data_warn_msg = ("Unable to import the `hd_mock_data` package. "
+            "The `hd_mock_data` package must be installed in order to use "
+            "the CMB-HD likelihood.")
+    warnings.warn(hd_mock_data_warn_msg)
 
 
 # ---- binning ----
@@ -362,21 +344,30 @@ class HDData:
             inconsistent with the settings `has_cmb_power_spectra` and 
             `has_cmb_lensing_spectrum`.
 
-
         Note
         ----
         You do not have to pass file names if you are using the mock data and
-        covariance matrices provided with `hdlike`; they are found automatically 
-        in the functions `hdlike.get_hd_filenames` and `hdlike.get_desi_filenames`. 
-        The option to use alternative mock data is included for flexibility, but 
-        you must ensure that they are binned consistently with the `hdlike` 
-        covariance matrix, have the correct ordering, and follow all other conventions 
-        stated above.
+        covariance matrices provided with `hdlike` and `hd_mock_data`; they are 
+        found automatically  by the `get_hd_filenames` and `get_desi_filenames` 
+        methods. The option to use alternative mock data is included for 
+        flexibility, but you must ensure that they are binned consistently 
+        with the `hdlike` covariance matrix, have the correct ordering, and 
+        follow all other conventions stated above.
         """
+        # make sure the `hd_mock_data` package is installed:
+        try:
+            from hd_mock_data import hd_data
+        except ImportError:
+            hd_mock_data_url = "github.com/CMB-HD/hdMockData"
+            print("ERROR while initializing the CMB-HD likelihood: "
+                    "Unable to import the `hd_mock_data` package. You must"
+                    f" install the `hd_mock_data` package ({hd_mock_data_url})"
+                    " in order to use the CMB-HD likelihood.")
+            raise
+        # --- multipole ranges and default values (for full data set): ---
         self.lmin = lmin
         self.lmax = lmax
         self.Lmax = Lmax
-        # --- default multipole ranges for full data set ---
         self.hd_lmin = 30
         self.hd_lmax = 20100
         self.hd_Lmax = 20100
@@ -390,8 +381,6 @@ class HDData:
         if use_cmb_lensing_spectrum and (not has_cmb_lensing_spectrum):
             errmsg = "You set `use_cmb_lensing_spectrum: True` and `has_cmb_lensing_spectrum: False`. To use CMB lensing data, you must also set `has_cmb_lensing_spectrum: True."
             raise ValueError(errmsg)
-        # default file names
-        default_bin_file, default_data_file, default_covmat_file, default_recon_noise_file = get_hd_filenames(delensed=delensed, baryonic_feedback=baryonic_feedback, hd_data_version=hd_data_version)
         # if `delensed = True`, and the user provides either a new `data_file`
         # or a new `recon_noise_file` (used for delensed theory) but not both,
         # warn the user that their theory calculation may not match the data
@@ -413,6 +402,10 @@ class HDData:
         self.has_cmb_lensing_spectrum = has_cmb_lensing_spectrum
         self.use_cmb_lensing_spectrum = use_cmb_lensing_spectrum
         self.delensed = delensed
+        self.baryonic_feedback = baryonic_feedback
+        # default file names
+        self.hd_datalib = hd_data.HDMockData(version=hd_data_version)
+        default_bin_file, default_data_file, default_covmat_file, default_recon_noise_file = self.get_hd_filenames()
         # --- load the data ---
         bin_fname = default_bin_file if (bin_file is None) else bin_file
         data_fname = default_data_file if (data_file is None) else data_file
@@ -420,7 +413,7 @@ class HDData:
         recon_noise_fname = default_recon_noise_file if (recon_noise_file is None) else recon_noise_file
         self.desi = use_desi_bao
         if self.desi:
-            desi_data_file, desi_cov_file = get_desi_filenames()
+            desi_data_file, desi_cov_file = self.get_desi_filenames()
             desi_cov = np.loadtxt(desi_cov_file)
             self.desi_invcov = np.linalg.inv(desi_cov)
             self.z, self.rs_dv = np.loadtxt(desi_data_file, unpack=True, usecols=(0,1))
@@ -451,6 +444,27 @@ class HDData:
             # so set it to None for now, then on first iteration get the noise
             # in the correct format and store it here:
             self.nlkk = None
+
+
+    def get_hd_filenames(self):
+        """Returns the file names of the CMB-HD lensed or delensed data."""
+        # get the file names from `HDMockData`:
+        cmb_type = 'delensed' if self.delensed else 'lensed'
+        bin_file = self.hd_datalib.bin_edges_fname()
+        data_file = self.hd_datalib.mcmc_bandpowers_fname(cmb_type, baryonic_feedback=self.baryonic_feedback)
+        covmat_file = self.hd_datalib.block_covmat_fname(cmb_type)
+        recon_noise_file = self.hd_datalib.lensing_noise_fname()
+        return bin_file, data_file, covmat_file, recon_noise_file
+    
+    
+    def get_desi_filenames(self):
+        """Returns the filenames of the mock DESI BAO data."""
+        # default data directory, relative to this file:
+        data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/')
+        data_path = lambda fname: os.path.join(data_dir, fname)
+        data_file = data_path('mock_desi_bao_rs_over_DV_data.txt')
+        cov_file = data_path('mock_desi_bao_rs_over_DV_cov.txt')
+        return data_file, cov_file
 
 
     def trim_data_lmax(self, data, covmat):
