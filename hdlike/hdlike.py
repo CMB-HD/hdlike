@@ -2,6 +2,8 @@ import os
 import warnings
 import numpy as np
 from cobaya.likelihood import Likelihood
+from cobaya.log import get_logger
+from cobaya.install import do_package_install
 try:
     from hd_mock_data import hd_data
 except ImportError:
@@ -722,3 +724,15 @@ class HDLike(Likelihood):
         return loglike
 
 
+    @classmethod
+    def install(cls, path=None, force=False, code=True, data=True,
+                no_progress_bars=False, **_kwargs):
+        if not data:
+            return True
+        # Install HDLike data
+        return do_package_install(
+            "hdMockData",
+            {"github_repository": "CMB-HD/hdMockData"},
+            logger=get_logger(cls.__name__),
+            full_code_path=os.path.join(path, "data"),
+        )
