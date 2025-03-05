@@ -110,7 +110,7 @@ Below we have provided some additional information (but you do not need to read 
 
 ### Generating a new input `.yaml` file for Cobaya
 
-We also provide a script that the user can run to generate their own `.yaml` file to input into Cobaya. To use this script, adjust the parameters of the `hdlike_settings.yaml` file. (One can also adjust the settings for CAMB and Cobaya in `camb_cobaya_settings.yaml`, for example to change which parameters are fixed/varied, such as baryonic feedback. One can also specify a proposal matrix in this file.) 
+We also provide a script that the user can run to generate their own `.yaml` file to input into Cobaya. To use this script, adjust the parameters of the `hdlike_settings.yaml` file. (One can also adjust the settings for CAMB and Cobaya in `camb_cobaya_settings.yaml`, for example to change which parameters are fixed/varied, such as baryonic feedback. One can also specify a proposal matrix in this file; we strongly recommend using a proposal matrix to speed up the convergence of the MCMC chains.) 
 
 To make the new input file, run the following command:
 
