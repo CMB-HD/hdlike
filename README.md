@@ -1,6 +1,6 @@
 # Readme for HDLike
 
-This is a mock CMB-HD likelihood including lensed and delensed $TT/TE/EE/BB$ CMB + lensing $\kappa\kappa$ spectra from multipoles 30 to 20,000.  We also include a mock DESI BAO likelihood. The likelihood can be used with Cobaya.  Please cite [MacInnis, Sehgal, and Rothermel (2023)](https://arxiv.org/abs/2309.03021).
+This is a mock CMB-HD likelihood including lensed and delensed $TT/TE/EE/BB$ CMB + lensing $\kappa\kappa$ spectra from multipoles 30 to 20,000.  We also include a mock DESI BAO likelihood. The likelihood can be used with Cobaya.  Please cite [MacInnis, Sehgal, and Rothermel (2023)](https://arxiv.org/abs/2309.03021). The option to calculate the theory with CLASS instead of CAMB was added for [Cheslog et. al. (2026)](https://arxiv.org/abs/XXXX.XXXXX); please also cite that work if you use it.
 
 
 ## Installation of likelihood
@@ -10,11 +10,13 @@ This is a mock CMB-HD likelihood including lensed and delensed $TT/TE/EE/BB$ CMB
 
 To use the CMB-HD likelihood, you must install Python version >= 3, [NumPy](https://numpy.org/), and [hdMockData](https://github.com/CMB-HD/hdMockData).
 
-To test the likelihood by running `test_hdlike.py`, you must also install [CAMB](https://camb.readthedocs.io/en/latest/).
+To test the likelihood by running `test_hdlike.py`, you must also install [CAMB](https://camb.readthedocs.io/en/latest/) (or CLASS, to run the test with the `--class` flag).
 
 To use the likelihood with Cobaya, you must have Python version >= 3.8 and [Cobaya](https://cobaya.readthedocs.io/en/latest/index.html).
 
-(The likelihood has been tested with Cobaya version 3.3.2 and CAMB version 1.5.0.)
+To calculate the theory with [CLASS](https://github.com/lesgourg/class_public) instead of CAMB, you must also install CLASS and its Python wrapper `classy`, and modify CLASS as described in the [Using CLASS instead of CAMB](#using-class-instead-of-camb) section below.
+
+(The likelihood has been tested with Cobaya version 3.3.2 and CAMB version 1.5.0. The CLASS option was tested with CLASS version 3.3.0.)
 
 
 ### Installation instructions
@@ -50,6 +52,15 @@ You can use more than one flag, e.g. `python test_hdlike.py --desi --feedback`.
 
 This will test that the code is calculating the correct likelihood by matching the output value to a precomputed likelihood value.
 
+To test the likelihood with the theory calculated by CLASS instead of CAMB (see the [Using CLASS instead of CAMB](#using-class-instead-of-camb) section below), add the `--class` flag. This requires the `--lensed` flag, and cannot be used with `--feedback`:
+
+```
+python test_hdlike.py --lensed --class
+python test_hdlike.py --lensed --class --desi
+```
+
+This uses the CLASS settings in `class_cobaya_settings.yaml`, and compares the theory to the CMB-HD bandpowers that were calculated with CLASS. Note that CLASS must be modified as described in the section below, or the test will fail.
+
 
 ### Testing the likelihood with Cobaya
 
@@ -59,12 +70,21 @@ To test the interface between hdlike and Cobaya, run the following command:
 python test_hdlike_cobaya.py
 ```
 
-The same flag options apply as above for `test_hdlike.py`.  This will also test that the code is outputting the correct likelihood by matching the output value to a precomputed likelihood.  In addition, it will test the Cobaya initialization.
+The same flag options apply as above for `test_hdlike.py`.  This will also test that the code is outputting the correct likelihood by matching the output value to a precomputed likelihood.  In addition, it will test the Cobaya initialization.  With the `--class` flag, the test instead loads the settings from `example_cmbhd_class_lcdm_nrun_nnu_mnu.yaml` (see below), and checks that Cobaya can initialize the likelihood with `classy`.
 
 
 ## Using the likelihood with Cobaya 
 
-We provide an example file that can be input into Cobaya and run, called `example_cmbhd.yaml`.  
+We provide an example file that can be input into Cobaya and run, called `example_cmbhd.yaml`.  We also provide the four input files used for the CMB-HD MCMC chains in Cheslog et. al. (2026), which use lensed CMB-HD spectra with mock DESI BAO, for a $\Lambda$CDM model (`lcdm`) and a $\Lambda$CDM + $\alpha_\mathrm{s}$ + $N_\mathrm{eff}$ + $\sum m_\nu$ model (`lcdm_nrun_nnu_mnu`), with the theory calculated by either CAMB or CLASS:
+
+```
+example_cmbhd_camb_lcdm.yaml
+example_cmbhd_camb_lcdm_nrun_nnu_mnu.yaml
+example_cmbhd_class_lcdm.yaml
+example_cmbhd_class_lcdm_nrun_nnu_mnu.yaml
+```
+
+In these four files, you must replace `/PATH/TO/` with the absolute path to your `hdlike` directory (the directory in which this README is located). Each one points at a proposal matrix from its own converged chain, in the `hdlike/data/proposal_cov/from_chains` directory.
 
 To run the built-in Cobaya test of the initialization, use the following command:
 
@@ -72,7 +92,7 @@ To run the built-in Cobaya test of the initialization, use the following command
 cobaya-run example_cmbhd.yaml --test
 ```
 
-Note that `test_hdlike_cobaya.py` loads information from the file `example_cmbhd.yaml`; if you’d like to modify the example file, please create your own copy.
+Note that `test_hdlike_cobaya.py` loads information from the file `example_cmbhd.yaml` (or from `example_cmbhd_class_lcdm_nrun_nnu_mnu.yaml`, with the `--class` flag); if you’d like to modify the example files, please create your own copy.
 
 MCMC chains can be run with the following command:
 
@@ -89,6 +109,27 @@ sbatch nersc_perlmutter_job_template.sb
 (You should include the name of the CMB project to which you are charging your hours somewhere in the `job-name`; e.g., `#SBATCH --job-name=hdlike_CMBEXP`. Please see below for more information about using Cobaya on NERSC.)
 
 To analyze the MCMC chains, we provide an example Jupyter notebook named `hdlike_cobaya_results.ipynb`. We also provide a set of pre-computed chains that can be used to test the notebook.
+
+## Using CLASS instead of CAMB
+
+The likelihood can also be used with the theory calculated by CLASS instead of CAMB, by using `classy` under the `theory` block of your Cobaya `.yaml` file and setting the option `use_class: True` under HDLike in the `likelihood` block:
+
+```
+likelihood:
+	hdlike.hdlike.HDLike:
+		delensed: False
+		use_class: True
+```
+
+When `use_class` is `True`, the likelihood compares the theory to CMB-HD bandpowers that were calculated with CLASS (using the settings of Cheslog et. al. (2026)), rather than with CAMB, so that the mock data and the theory are calculated consistently. These bandpowers are provided with `hdlike` in the `hdlike/data` directory, and are only available for the latest version of the CMB-HD data (`hd_data_version: v1.2`), with lensed spectra and no baryonic feedback. If `baryonic_feedback` is `True`, the likelihood uses the bandpowers calculated with CAMB instead, and warns you that the feedback model in CLASS may not match. The likelihood will raise an error if `use_class` does not match the theory code Cobaya is using.
+
+__Note__ the following before using CLASS:
+- __The CLASS source code must be modified__ as described in Appendix A of Cheslog et. al. (2026), or the calculation will fail. In `source/lensing.c`, the variables `num_mu` and `index_mu` must be changed from `int` to `long long` (and `icount` to `unsigned long long`), so that the lensing calculation does not overflow at the multipoles used for CMB-HD. In `source/input.c`, the check that rejects a negative `N_ur` must be commented out, so that $N_\mathrm{eff}$ can be varied below its standard value with three massive neutrinos. These are at lines 124 and 2470 of CLASS version 3.3.4; the chains in Cheslog et. al. (2026) used version 3.3.0. A warning is issued as a reminder whenever `use_class` is `True`.
+- Delensed spectra cannot be calculated with CLASS, so you must set `delensed: False`. The likelihood will raise an error otherwise.
+- CLASS reads the BBN table named by `sBBN file` in the `classy` block itself, so it must be an absolute path. We provide the table used in Cheslog et. al. (2026), `hdlike/data/PRIMAT21_class_format.dat`; replace `/PATH/TO/` in the example files with the path to your `hdlike` directory.
+- The parameter names in the `params` block are the CLASS names (e.g. `omega_b`, `omega_cdm`, `tau_reio`, `ln_A_s_1e10`, `n_s`), and $H_0$ is sampled in place of $\theta_\mathrm{MC}$. The sum of the neutrino masses and $N_\mathrm{eff}$ are sampled as `mnu` and `N_eff`, and converted to CLASS's `m_ncdm` and `N_ur` in the `params` block; see `class_cobaya_settings.yaml`.
+
+The example files `example_cmbhd_class_lcdm.yaml` and `example_cmbhd_class_lcdm_nrun_nnu_mnu.yaml` (see above) contain the CLASS settings used in Cheslog et. al. (2026), and `class_cobaya_settings.yaml` holds the same settings for use with `generate_cobaya_input_file.py` (see below).
 
 ## Running MCMC chains on NERSC
 
@@ -117,6 +158,8 @@ To make the new input file, run the following command:
 ```
 python generate_cobaya_input_file.py hdlike_settings.yaml camb_cobaya_settings.yaml
 ```
+
+To calculate the theory with CLASS instead, pass `class_cobaya_settings.yaml` in place of `camb_cobaya_settings.yaml`. This sets `use_class: True` for the likelihood, and requires `delensed: False` in `hdlike_settings.yaml`. (Note that you must still replace `/PATH/TO/` in the `sBBN file` entry of `class_cobaya_settings.yaml` with the path to your `hdlike` directory.)
 
 ### Note on using DESI BAO with Cobaya
 
@@ -153,7 +196,7 @@ likelihood:
 
 Additionally, you can change the maximum multipole for the CMB or lensing mock spectra and covariance matrix by setting the option `lmax` or `Lmax`, respectively, to an integer below the default `lmax = 20100` or `Lmax = 20100`. The minimum multipole for all spectra is fixed to 30. You can exclude the lensing power spectrum data by setting the option `use_cmb_lensing_spectrum: False`, or exclude the CMB $TT/TE/EE/BB$ data by setting the option `use_cmb_power_spectra: False`.
 
-A basic example YAML file is provided, named `example_cmbhd.yaml`. The proposal widths of parameters in the `parameters` block were obtained from a CMB-HD Fisher matrix, located in the `hdlike/data/proposal_cov/from_fisher` directory. We also provide a few proposal matrices from MCMC runs in the `hdlike/data/proposal_cov/from_chains` directory.
+A basic example YAML file is provided, named `example_cmbhd.yaml`. The proposal widths of parameters in the `parameters` block were obtained from a CMB-HD Fisher matrix, located in the `hdlike/data/proposal_cov/from_fisher` directory. We also provide a few proposal matrices from MCMC runs in the `hdlike/data/proposal_cov/from_chains` directory, including those from the CMB-HD chains in Cheslog et. al. (2026), for both CAMB and CLASS.
 
 - __Note__ that you should provide your own `output` path at the top of the file; the chain files that are output may be large. See the [Cobaya docs](https://cobaya.readthedocs.io/en/latest/output.html#output-shell) for details.
 
@@ -172,4 +215,3 @@ likelihood:
 ```
 
 The example YAML file `example_cmbhd.yaml` contains a sample `bao.generic` block, but you must replace `/PATH/TO/` with the absolute path to your `hdlike` directory (the directory in which this README is located). See the [Cobaya docs](https://cobaya.readthedocs.io/en/latest/likelihood_bao.html) for more information about the generic BAO likelihood.
-

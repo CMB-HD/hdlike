@@ -27,6 +27,17 @@ Lmax: 20100
 #  for more information about each version: github.com/CMB-HD/hdMockData
 hd_data_version: latest
 
+# set `use_class: True` if the theory is calculated with CLASS instead of CAMB.
+# the likelihood will then use CMB-HD bandpowers that were calculated with CLASS
+#  as the mock data (these are provided with `hdlike`, and are only available
+#  for `hd_data_version: v1.2`, i.e. the latest version).
+# NOTE that delensed spectra cannot be calculated with CLASS, so `delensed` must
+#      be `False`. There are no CLASS bandpowers for the model with baryonic
+#      feedback, so if `baryonic_feedback` is `True` the CAMB bandpowers are used.
+# NOTE that CLASS itself must be modified before it can be used with the CMB-HD
+#      likelihood; see the README.
+use_class: False
+
 # --- data files: leave blank to use HD data ---
 # NOTE that, if you provide alternative filenames for, e.g., the binned data spectra,
 #      the likelihood does not check if the data is compatible (for example, the same

@@ -8,7 +8,7 @@ from cobaya.yaml import yaml_load_file, yaml_dump_file
 
 parser = argparse.ArgumentParser(description="Generate an input file for Cobaya (i.e., a `.yaml` file) for the CMB-HD likelihood.")
 parser.add_argument('input_settings_filename', help='Pass a file, `input_settings_filename`, containing the input settings for the CMB-HD likelihood. A default file named `hdlike_settings.yaml` has been provided. NOTE that this is not the same as the input YAML file that is used to run Cobaya.')
-parser.add_argument('cobaya_settings_filename', help='Pass a file, `cobaya_settings_filename`, containing the settings for Cobaya and CAMB. A default file named `camb_cobaya_settings.yaml` has been provided.')
+parser.add_argument('cobaya_settings_filename', help='Pass a file, `cobaya_settings_filename`, containing the settings for Cobaya and CAMB (or CLASS). Default files named `camb_cobaya_settings.yaml` (for CAMB) and `class_cobaya_settings.yaml` (for CLASS) have been provided.')
 args = parser.parse_args()
 
 # default settings from `hdlike_settings.yaml`
@@ -49,11 +49,14 @@ data_path = lambda x: os.path.join(data_dir, x)
 # settings for Cobaya
 info = yaml_load_file(args.cobaya_settings_filename)
 
-if 'classy' in info['theory'].keys():
+# check whether the theory will be calculated with CLASS instead of CAMB
+use_class = 'classy' in info['theory'].keys()
+if use_class:
     if delensed:
         raise ValueError("Cannot compute delensed power spectra using CLASS.")
     if baryonic_feedback:
         warnings.warn("Note that the mock spectra use the HMCode2020 baryonic feedback model, which may not match the model in CLASS.")
+    warnings.warn("NOTE that CLASS must be modified before it can be used with the CMB-HD likelihood; see the README.")
 
 
 # update the `info` dict with the loaded settings
@@ -65,13 +68,13 @@ else:
 
 if 'camb' in info['theory'].keys():
     info['theory']['camb']['extra_args']['halofit_version'] = hmcode_version
-elif 'classy' in info['theory'].keys():
-    info['theory']['classy']['extra_args']['non linear'] = 'hmcode'
+# (for CLASS, the non-linear model is set in the `class_cobaya_settings.yaml` file)
 
 hdlike_info = {'delensed': delensed,
                'baryonic_feedback': baryonic_feedback,
                'lmax': lmax, 'Lmax': Lmax,
-               'use_cmb_power_spectra': use_cmb_power_spectra, 'use_cmb_lensing_spectrum': use_cmb_lensing_spectrum, 'hd_data_version': hd_data_version}
+               'use_cmb_power_spectra': use_cmb_power_spectra, 'use_cmb_lensing_spectrum': use_cmb_lensing_spectrum, 'hd_data_version': hd_data_version,
+               'use_class': use_class}
 if 'likelihood' not in info.keys():
     info['likelihood'] = {'hdlike.hdlike.HDLike': hdlike_info}
 else:
@@ -99,6 +102,8 @@ if desi_bao:
     root = f'{root}_desi'
 if baryonic_feedback:
     root = f'{root}_feedback'
+if use_class:
+    root = f'{root}_class'
 
 if output_root is None:
     output_root = root

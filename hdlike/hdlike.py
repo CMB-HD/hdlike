@@ -12,6 +12,23 @@ except ImportError:
             "the CMB-HD likelihood.")
     warnings.warn(hd_mock_data_warn_msg)
 
+# CLASS needs two small changes to its source code before it can be used
+# with the CMB-HD likelihood (see Appendix A of Cheslog et. al. 2026). This
+# message is shown as a warning whenever `use_class` is `True`.
+class_modification_warn_msg = ("`use_class=True`: the CLASS source code must "
+        "be modified before it can be used with the CMB-HD likelihood, as "
+        "described in Appendix A of Cheslog et. al. (2026), or the calculation "
+        "will fail. (1) In `source/lensing.c`, change the variables `num_mu` "
+        "and `index_mu` from `int` to `long long`, and `icount` to "
+        "`unsigned long long`, so that the lensing calculation does not "
+        "overflow at high multipoles (line 124 in CLASS v3.3.4). (2) In "
+        "`source/input.c`, comment out the `class_test` that rejects a "
+        "negative `N_ur` (line 2470 in CLASS v3.3.4), so that N_eff can be "
+        "varied below its standard value with three massive neutrinos. The "
+        "`sBBN file` in the `classy` block of your Cobaya YAML file must also "
+        "be the absolute path to the BBN table provided in `hdlike/data`; see "
+        "the README.")
+
 
 # ---- binning ----
 
@@ -258,8 +275,8 @@ class HDData:
                  has_cmb_lensing_spectrum=True, 
                  use_cmb_power_spectra=True, 
                  use_cmb_lensing_spectrum=True,
-                 use_desi_bao=False, #NOTE: set `use_desi_bao=False` when using Cobaya 
-                 hd_data_version='latest'):
+                 use_desi_bao=False, #NOTE: set `use_desi_bao=False` when using Cobaya
+                 hd_data_version='latest', use_class=False):
         """Initialize the CMB-HD likelihood with the binned lensed or delensed 
         data spectra and covariance matrix.
 
@@ -335,16 +352,29 @@ class HDData:
             covariance matrix, bandpowers, and lensing noise (used to 
             calculate delensed theory) is used. By default, the latest  
             version is used. To reproduce the results in 
-            MacInnis et. al. (2023), use `hd_data_version='v1.0'`. 
+            MacInnis et. al. (2023), use `hd_data_version='v1.0'`.
             See the `hdMockData` repository for a list of versions.
+        use_class : bool, default=False
+            Whether the theory is calculated with CLASS instead of CAMB.
+            If `True`, the default `data_file` holds bandpowers that were
+            calculated with CLASS, which are provided with `hdlike` and are
+            only available for the latest (`'v1.2'`) `hd_data_version`.
+            Delensed spectra cannot be calculated with CLASS, so `delensed`
+            must be `False`. There are no CLASS bandpowers for the model
+            with baryonic feedback, so if `baryonic_feedback` is `True`,
+            the bandpowers calculated with CAMB are used instead (and a
+            warning is issued).
+            NOTE that CLASS must be modified before it can be used with
+            this likelihood; see the README.
 
         Raises
         ------
         ValueError
-            If the settings for `use_cmb_power_spectra` and 
+            If the settings for `use_cmb_power_spectra` and
             `use_cmb_lensing_spectrum` are both `False`, or if either is
-            inconsistent with the settings `has_cmb_power_spectra` and 
-            `has_cmb_lensing_spectrum`.
+            inconsistent with the settings `has_cmb_power_spectra` and
+            `has_cmb_lensing_spectrum`; or if `use_class` and `delensed`
+            are both `True`.
 
         Note
         ----
@@ -383,6 +413,14 @@ class HDData:
         if use_cmb_lensing_spectrum and (not has_cmb_lensing_spectrum):
             errmsg = "You set `use_cmb_lensing_spectrum: True` and `has_cmb_lensing_spectrum: False`. To use CMB lensing data, you must also set `has_cmb_lensing_spectrum: True."
             raise ValueError(errmsg)
+        # delensed spectra cannot be calculated with CLASS
+        if use_class and delensed:
+            errmsg = "You set `use_class: True` and `delensed: True`, but delensed spectra cannot be calculated with CLASS. To use CLASS, set `delensed: False`; to use the delensed data, calculate the theory with CAMB."
+            raise ValueError(errmsg)
+        # there are no CLASS bandpowers for the model with baryonic feedback,
+        # so the CAMB ones are used in that case
+        if use_class and baryonic_feedback:
+            warnings.warn("You set `use_class: True` and `baryonic_feedback: True`, but there are no CMB-HD bandpowers calculated with CLASS for the model with baryonic feedback, so the bandpowers calculated with CAMB (using the HMCode2020 feedback model) will be used instead. Note that these may not match the feedback model in CLASS.")
         # if `delensed = True`, and the user provides either a new `data_file`
         # or a new `recon_noise_file` (used for delensed theory) but not both,
         # warn the user that their theory calculation may not match the data
@@ -405,6 +443,7 @@ class HDData:
         self.use_cmb_lensing_spectrum = use_cmb_lensing_spectrum
         self.delensed = delensed
         self.baryonic_feedback = baryonic_feedback
+        self.use_class = use_class
         # default file names
         self.hd_datalib = hd_data.HDMockData(version=hd_data_version)
         default_bin_file, default_data_file, default_covmat_file, default_recon_noise_file = self.get_hd_filenames()
@@ -453,10 +492,35 @@ class HDData:
         # get the file names from `HDMockData`:
         cmb_type = 'delensed' if self.delensed else 'lensed'
         bin_file = self.hd_datalib.bin_edges_fname()
-        data_file = self.hd_datalib.mcmc_bandpowers_fname(cmb_type, baryonic_feedback=self.baryonic_feedback)
+        if self.use_class and (not self.baryonic_feedback):
+            data_file = self.get_class_bandpowers_filename()
+        else:
+            data_file = self.hd_datalib.mcmc_bandpowers_fname(cmb_type, baryonic_feedback=self.baryonic_feedback)
         covmat_file = self.hd_datalib.block_covmat_fname(cmb_type)
         recon_noise_file = self.hd_datalib.lensing_noise_fname()
         return bin_file, data_file, covmat_file, recon_noise_file
+
+
+    def get_class_bandpowers_filename(self):
+        """Returns the file name of the lensed CMB-HD bandpowers that were
+        calculated with CLASS, which are provided with `hdlike` (they are
+        not part of `hdMockData`). They are only available for the latest
+        version of the CMB-HD data.
+
+        Raises
+        ------
+        ValueError
+            If the `hd_data_version` is not the version for which the CLASS
+            bandpowers were calculated.
+        """
+        class_bandpowers_version = 'v1.2'
+        if self.hd_datalib.version != class_bandpowers_version:
+            errmsg = (f"The CMB-HD bandpowers calculated with CLASS are only available for `hd_data_version = '{class_bandpowers_version}'`, but you are using `hd_data_version = '{self.hd_datalib.version}'`. To use CLASS, set `hd_data_version: {class_bandpowers_version}` (or `latest`).")
+            raise ValueError(errmsg)
+        # default data directory, relative to this file:
+        data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/')
+        fname = f'hd_lmin{self.hd_lmin}lmax{self.hd_lmax}_lensed_CLASS_bandpowers_mcmc_{class_bandpowers_version}.txt'
+        return os.path.join(data_dir, fname)
     
     
     def get_desi_filenames(self):
@@ -682,10 +746,18 @@ class HDLike(Likelihood):
 
         Raises
         -----
-        ValueError 
-            If the settings to use CMB and/or lensing data are inconsistent.
+        ValueError
+            If the settings to use CMB and/or lensing data are inconsistent,
+            or if `use_class` and `delensed` are both `True`.
+
+        Warns
+        -----
+        If `use_class` is `True`, as a reminder that CLASS must be modified
+        before it can be used with this likelihood (see the README).
         """
-        self.hd_data = HDData(lmin=self.lmin, lmax=self.lmax, Lmax=self.Lmax, 
+        if self.use_class:
+            warnings.warn(class_modification_warn_msg)
+        self.hd_data = HDData(lmin=self.lmin, lmax=self.lmax, Lmax=self.Lmax,  
                               delensed=self.delensed, 
                               baryonic_feedback=self.baryonic_feedback,
                               data_file=self.data_file, 
@@ -696,7 +768,33 @@ class HDLike(Likelihood):
                               has_cmb_lensing_spectrum=self.has_cmb_lensing_spectrum,
                               use_cmb_power_spectra=self.use_cmb_power_spectra, 
                               use_cmb_lensing_spectrum=self.use_cmb_lensing_spectrum,
-                              hd_data_version=self.hd_data_version)
+                              hd_data_version=self.hd_data_version,
+                              use_class=self.use_class)
+
+
+    def initialize_with_provider(self, provider):
+        """Check that the `use_class` setting matches the code that Cobaya
+        is using to calculate the theory, since the mock data that the theory
+        is compared to depends on it.
+
+        Raises
+        ------
+        ValueError
+            If `use_class` is `False` but the theory is calculated with
+            `classy`, or if `use_class` is `True` but it is not.
+        """
+        super().initialize_with_provider(provider)
+        try:
+            theory_names = [str(name).lower() for name in provider.model.theory]
+        except AttributeError: # in case a future version of Cobaya changes this
+            return
+        uses_classy = any('classy' in name for name in theory_names)
+        if uses_classy and (not self.use_class):
+            errmsg = "Cobaya is calculating the theory with CLASS, but you did not set `use_class: True` for `hdlike.hdlike.HDLike`, so the likelihood would compare it to mock data calculated with CAMB. Set `use_class: True` in the `hdlike.hdlike.HDLike` block of your YAML file."
+            raise ValueError(errmsg)
+        if self.use_class and (not uses_classy):
+            errmsg = "You set `use_class: True` for `hdlike.hdlike.HDLike`, but Cobaya is not calculating the theory with CLASS. Either set `use_class: False`, or use `classy` in the `theory` block of your YAML file."
+            raise ValueError(errmsg)
     
 
     def get_requirements(self):

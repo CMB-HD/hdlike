@@ -1,0 +1,182 @@
+# ----- Cobaya and CLASS settings for the CMB-HD likelihood -----
+#
+# This is the CLASS counterpart of `camb_cobaya_settings.yaml`, for use with
+#  `generate_cobaya_input_file.py`. The CLASS accuracy settings and the sampled
+#  parameters are those used in Cheslog et. al. (2026) (see Appendix A of that
+#  work), which use CLASS parameter names, H0 in place of theta_MC, and three
+#  massive neutrinos.
+# NOTE that CLASS must be modified before it can be used with the CMB-HD
+#  likelihood, and that delensed spectra cannot be calculated with CLASS; see
+#  the "Using CLASS instead of CAMB" section of the README.
+
+# this will automatically resume previously-run MCMC chains with the same
+# `output` path that you've provided above
+resume: True
+
+theory:
+  classy:
+    extra_args:
+        ## NOTE: `sBBN file` must be the *absolute* path to the BBN table
+        ##  provided with `hdlike`; replace `/PATH/TO/` with the path to your
+        ##  `hdlike` directory.
+        N_ncdm: 3
+        T_cmb: 2.7255
+        YHe: BBN
+        sBBN file: "/PATH/TO/hdlike/hdlike/data/PRIMAT21_class_format.dat"
+        non_linear: 'hmcode'
+        hmcode_version: '2016'
+        recombination: 'recfast'
+        lensing: 'yes'
+        output: 'lCl,tCl,pCl,mPk'
+        modes: 's'
+        l_max_scalars: 24500
+        delta_l_max: 2050
+        P_k_max_h/Mpc: 500
+        l_logstep: 1.025
+        l_linstep: 20
+        perturbations_sampling_stepsize: 0.05
+        l_switch_limber: 30.
+        hyper_sampling_flat: 32.
+        l_max_g: 40
+        l_max_ur: 35
+        l_max_pol_g: 60
+        ur_fluid_approximation: 2
+        ur_fluid_trigger_tau_over_tau_k: 130.
+        radiation_streaming_approximation: 2
+        radiation_streaming_trigger_tau_over_tau_k: 240.
+        hyper_flat_approximation_nu: 7000.
+        transfer_neglect_delta_k_S_t0: 0.17
+        transfer_neglect_delta_k_S_t1: 0.05
+        transfer_neglect_delta_k_S_t2: 0.17
+        transfer_neglect_delta_k_S_e: 0.17
+        accurate_lensing: 1
+        start_small_k_at_tau_c_over_tau_h: 0.0004
+        start_large_k_at_tau_h_over_tau_k: 0.05
+        tight_coupling_trigger_tau_c_over_tau_h: 0.005
+        tight_coupling_trigger_tau_c_over_tau_k: 0.008
+        start_sources_at_tau_c_over_tau_h: 0.006
+        l_max_ncdm: 30
+        tol_ncdm_synchronous: 1.e-6
+
+
+params:
+  ln_A_s_1e10:
+    prior:
+      min: 2
+      max: 4
+    ref:
+      dist: norm
+      loc: 3.05
+      scale: 0.001
+    proposal: 0.0003
+    latex: \log(10^{10} A_\mathrm{s})
+    drop: True
+  A_s:
+    value: 'lambda ln_A_s_1e10: 1e-10*np.exp(ln_A_s_1e10)'
+    latex: A_\mathrm{s}
+    derived: true
+  n_s:
+    prior:
+      min: 0.8
+      max: 1.2
+    ref:
+      dist: norm
+      loc: 0.965
+      scale: 0.002
+    proposal: 0.0002
+    latex: n_\mathrm{s}
+  H0:
+    prior:
+      min: 20
+      max: 100
+    ref:
+      dist: norm
+      loc: 67.36
+      scale: 0.3
+    proposal: 0.015
+    latex: H_0
+  omega_b:
+    prior:
+      min: 0.005
+      max: 0.1
+    ref:
+      dist: norm
+      loc: 0.0224
+      scale: 0.00005
+    proposal: 9.7e-6
+    latex: \Omega_\mathrm{b} h^2
+  omega_cdm:
+    prior:
+      min: 0.001
+      max: 0.99
+    ref:
+      dist: norm
+      loc: 0.12
+      scale: 0.0005
+    proposal: 2.1e-5
+    latex: \Omega_\mathrm{c} h^2
+  ## the sum of the neutrino masses is sampled, and split evenly over the
+  ##  three massive species to give CLASS's `m_ncdm`
+  mnu:
+    prior:
+      min: 0
+      max: 5
+    ref:
+      dist: norm
+      loc: 0.06
+      scale: 0.01
+    proposal: 0.0014
+    latex: \sum m_\nu
+    drop: True
+  m_ncdm:
+    value: 'lambda mnu: str(mnu/3.) + "," + str(mnu/3.) + "," + str(mnu/3.)'
+    latex: m_\nu
+    derived: False
+  ## N_eff is sampled, and converted to CLASS's `N_ur` (the number of
+  ##  ultra-relativistic species) given the three massive species
+  N_eff:
+    prior:
+      min: 0.0
+      max: 10
+    ref:
+      dist: norm
+      loc: 3.044
+      scale: 0.005
+    proposal: 0.0013
+    latex: N_\mathrm{eff}
+    drop: True
+  N_ur:
+    value: "lambda N_eff: N_eff - 3*1.0131966"
+    latex: N_\mathrm{ur}
+    derived: False
+  tau_reio:
+    prior:
+      dist: norm
+      loc: 0.054
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.054
+      scale: 0.006
+    proposal: 0.0002
+    latex: \tau_\mathrm{reio}
+  ## To also vary the running of the spectral index, un-comment the
+  ##  `alpha_s` block below.
+  #alpha_s:
+  #  prior:
+  #    min: -0.02
+  #    max: 0.02
+  #  ref:
+  #    dist: norm
+  #    loc: 0.0
+  #    scale: 0.005
+  #  proposal: 0.001
+  #  latex: \alpha_s
+
+sampler:
+  mcmc:
+    Rminus1_stop: 0.01
+    Rminus1_cl_stop: 0.2
+    max_tries: 400d
+    #covmat: hdlike/data/proposal_cov/from_chains/hd_lensed_desi_bao_class_lcdm.txt
+    #covmat: hdlike/data/proposal_cov/from_chains/hd_lensed_desi_bao_class_lcdm_nrun_nnu_mnu.txt

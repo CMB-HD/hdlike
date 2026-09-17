@@ -33,3 +33,11 @@ Note: the mock CMB and lensing data was made with higher CAMB accuracy than the 
 Mock DESI BAO data files:
 - `mock_desi_bao_rs_over_DV_data.txt` and `mock_desi_bao_rs_over_DV_cov.txt` : The first file contains the mock DESI BAO data; the first column gives the redshift, and the second gives the quantity $r_s/d_V(z)$, where $d_V(z) \equiv \left[(1+z)d_A(z)\right]^{2/3} \left[cz / H(z)\right]^{1/3}$, $d_A(z)$ is the angular diameter distance, and $H(z)$ is the expansion rate. The second file contains the (diagonal) covariance matrix for this data, derived from Tables 2.3 and 2.5 in arXiv:1611.00036.
 
+
+---
+
+Files added for Cheslog et. al. (2026):
+
+- `hd_lmin30lmax20100_lensed_CLASS_bandpowers_mcmc_v1.2.txt`: The binned lensed CMB-HD theory spectra calculated with CLASS, in the same format as the bandpowers described above, for version `'v1.2'` of the CMB-HD data. These are used as the mock data when `use_class` is `True`, so that the theory and the data are calculated with the same code.
+- `PRIMAT21_class_format.dat`: The PRIMAT 2021 BBN table, converted to the three-column format that CLASS reads (`ombh2`, `DeltaN`, `Yp`), from CAMB's `PRIMAT_Yp_DH_ErrorMC_2021.dat`. CLASS reads this file itself, so the `sBBN file` entry of the `classy` block must be its absolute path.
+- `proposal_cov/from_chains/hd_lensed_desi_bao_{camb,class}_lcdm.txt` and `hd_lensed_desi_bao_{camb,class}_lcdm_nrun_nnu_mnu.txt`: Proposal matrices from the converged CMB-HD chains in Cheslog et. al. (2026), for the two models and the two theory codes; the first line of each lists its parameters.

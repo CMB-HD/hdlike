@@ -1,0 +1,207 @@
+### Example Cobaya input file for CMB-HD: lensed TT/TE/EE/BB + kk + mock DESI BAO,
+###  with the theory calculated by CLASS, for the LCDM + alpha_s + N_eff + sum m_nu model.
+### This is the input file used for the CMB-HD MCMC chains in Cheslog et. al. (2026).
+# NOTE: if you would like to modify these settings, please create a copy of this file to use.
+# NOTE: you must replace `/PATH/TO/` below with the absolute path to your `hdlike` directory
+#       (the directory in which the README is located).
+# NOTE: CLASS must be modified before it can be used with the CMB-HD likelihood;
+#       see the "Using CLASS instead of CAMB" section of the README.
+
+## NOTE: indicate where the products will be written and a prefix for their name
+##  see https://cobaya.readthedocs.io/en/latest/output.html#output-shell
+output: hdlike_chains/cmbhd_lensed_desi_class_lcdm_nrun_nnu_mnu
+## this will automatically resume previously-run MCMC chains with the same 
+##  `output` path that you've provided above
+resume: True
+
+### Likelihood settings
+likelihood:
+  hdlike.hdlike.HDLike:
+    ## see `hdlike_settings.yaml` for a description of each setting
+    ## `use_class: True` tells the likelihood to compare the theory to the
+    ##  CMB-HD bandpowers that were calculated with CLASS (provided with
+    ##  `hdlike`), and requires `delensed: False`.
+    use_class: True
+    ## the version of the CMB-HD mock data (see `hdMockData`); v1.2 was used
+    ##  in Cheslog et. al. (2026)
+    hd_data_version: v1.2
+    delensed: False
+    baryonic_feedback: False
+    lmax: 20100
+    Lmax: 20100
+    use_cmb_power_spectra: True
+    use_cmb_lensing_spectrum: True
+  ## The mock DESI BAO data (remove the `bao.generic` block to exclude it).
+  ## NOTE that you must provide the *absolute* path to the 
+  ##      `measurements_file` and `cov_file` below. Here, they are given
+  ##      by their paths relative to the location of `example_cmbhd.yaml`. 
+  ##      Note that in the test python script `test_hdlike_cobaya.py`,
+  ##      the absolute paths are found and passed to Cobaya.
+  bao.generic:
+    measurements_file: /PATH/TO/hdlike/hdlike/data/mock_desi_bao_rs_over_DV_data.txt
+    cov_file: /PATH/TO/hdlike/hdlike/data/mock_desi_bao_rs_over_DV_cov.txt
+
+### CLASS settings
+theory:
+  classy:
+    extra_args:
+        N_ncdm: 3
+        T_cmb: 2.7255
+        YHe: BBN
+        sBBN file: "/PATH/TO/hdlike/hdlike/data/PRIMAT21_class_format.dat"
+        non_linear: 'hmcode'
+        hmcode_version: '2016'
+        recombination: 'recfast'
+        lensing: 'yes'
+        output: 'lCl,tCl,pCl,mPk'
+        modes: 's'
+        l_max_scalars: 24500
+        delta_l_max: 2050
+        P_k_max_h/Mpc: 500
+        l_logstep: 1.025
+        l_linstep: 20
+        perturbations_sampling_stepsize: 0.05
+        l_switch_limber: 30.
+        hyper_sampling_flat: 32.
+        l_max_g: 40
+        l_max_ur: 35
+        l_max_pol_g: 60
+        ur_fluid_approximation: 2
+        ur_fluid_trigger_tau_over_tau_k: 130.
+        radiation_streaming_approximation: 2
+        radiation_streaming_trigger_tau_over_tau_k: 240.
+        hyper_flat_approximation_nu: 7000.
+        transfer_neglect_delta_k_S_t0: 0.17
+        transfer_neglect_delta_k_S_t1: 0.05
+        transfer_neglect_delta_k_S_t2: 0.17
+        transfer_neglect_delta_k_S_e: 0.17
+        accurate_lensing: 1
+        start_small_k_at_tau_c_over_tau_h: 0.0004
+        start_large_k_at_tau_h_over_tau_k: 0.05
+        tight_coupling_trigger_tau_c_over_tau_h: 0.005
+        tight_coupling_trigger_tau_c_over_tau_k: 0.008
+        start_sources_at_tau_c_over_tau_h: 0.006
+        l_max_ncdm: 30
+        tol_ncdm_synchronous: 1.e-6
+    
+
+### varied, fixed, and derived parameters
+params:
+  ln_A_s_1e10:
+    prior:
+      min: 2
+      max: 4
+    ref:
+      dist: norm
+      loc: 3.05
+      scale: 0.001
+    proposal: 0.0003
+    latex: \log(10^{10} A_\mathrm{s})
+    drop: True
+  A_s:
+    value: 'lambda ln_A_s_1e10: 1e-10*np.exp(ln_A_s_1e10)'
+    latex: A_\mathrm{s}
+    derived: true
+  n_s:
+    prior:
+      min: 0.8
+      max: 1.2
+    ref:
+      dist: norm
+      loc: 0.965
+      scale: 0.002
+    proposal: 0.0002
+    latex: n_\mathrm{s}
+  H0:
+    prior:
+      min: 20
+      max: 100
+    ref:
+      dist: norm
+      loc: 67.36
+      scale: 0.3
+    proposal: 0.015
+    latex: H_0
+  omega_b:
+    prior:
+      min: 0.005
+      max: 0.1
+    ref:
+      dist: norm
+      loc: 0.0224
+      scale: 0.00005
+    proposal: 9.7e-6
+    latex: \Omega_\mathrm{b} h^2
+  omega_cdm:
+    prior:
+      min: 0.001
+      max: 0.99
+    ref:
+      dist: norm
+      loc: 0.12
+      scale: 0.0005
+    proposal: 2.1e-5
+    latex: \Omega_\mathrm{c} h^2
+  mnu:
+    prior:
+      min: 0
+      max: 5
+    ref:
+      dist: norm
+      loc: 0.06
+      scale: 0.01
+    proposal: 0.0014
+    latex: \sum m_\nu
+    drop: True
+  m_ncdm:
+    value: 'lambda mnu: str(mnu/3.) + "," + str(mnu/3.) + "," + str(mnu/3.)'
+    latex: m_\nu
+    derived: False
+  N_eff:
+    prior:
+      min: 0.0
+      max: 10
+    ref:
+      dist: norm
+      loc: 3.044
+      scale: 0.005
+    proposal: 0.0013
+    latex: N_\mathrm{eff}
+    drop: True
+  N_ur:
+    value: "lambda N_eff: N_eff - 3*1.0131966"
+    latex: N_\mathrm{ur}
+    derived: False
+  tau_reio:
+    prior:
+      dist: norm
+      loc: 0.054
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.054
+      scale: 0.006
+    proposal: 0.0002
+    latex: \tau_\mathrm{reio}
+  alpha_s:
+    prior:
+      min: -0.02
+      max: 0.02
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    proposal: 0.001
+    latex: \alpha_s
+
+
+### The MCMC sampler:
+sampler:
+  mcmc:
+    Rminus1_stop: 0.01
+    Rminus1_cl_stop: 0.2
+    ## Below, you can provide (the absolute path to) a parameter covariance 
+    ##  matrix, e.g. from a previous MCMC run; see the Cobaya documentation for 
+    ##  more information.
+    max_tries: 400d
+    covmat: /PATH/TO/hdlike/hdlike/data/proposal_cov/from_chains/hd_lensed_desi_bao_class_lcdm_nrun_nnu_mnu.txt
