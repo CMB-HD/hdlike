@@ -252,109 +252,128 @@ def cov_from_blocks(blocks, spectra=['tt', 'te', 'ee', 'bb', 'kk'], ell_ranges=N
 
 class HDData:
     def __init__(self, lmin=30, lmax=20100, Lmax=20100, delensed=True,
-                 baryonic_feedback=False, data_file=None, covmat_file=None, 
-                 bin_file=None, recon_noise_file=None, 
-                 has_cmb_power_spectra=True, 
-                 has_cmb_lensing_spectrum=True, 
-                 use_cmb_power_spectra=True, 
+                 baryonic_feedback=False, data_file=None, covmat_file=None,
+                 bin_file=None, recon_noise_file=None,
+                 has_cmb_power_spectra=True,
+                 has_cmb_lensing_spectrum=True,
+                 use_cmb_power_spectra=True,
                  use_cmb_lensing_spectrum=True,
-                 use_desi_bao=False, #NOTE: set `use_desi_bao=False` when using Cobaya 
+                 use_desi_bao=False, #NOTE: set `use_desi_bao=False` when using Cobaya
+                 use_class=False, # determined automatically when using Cobaya
                  hd_data_version='latest'):
-        """Initialize the CMB-HD likelihood with the binned lensed or delensed 
-        data spectra and covariance matrix.
+        """Initialize the CMB-HD likelihood with the binned lensed or
+        delensed data spectra and covariance matrix.
 
         Parameters
         ----------
         lmin : int, default=30
-            The minimum multipole used in the data files, which sets the lowest
-            bin edge. All CMB power spectra and CMB lensing spectra, and the 
-            corresponding covariance matrix, are assumed to start at the bin edge 
-            corresponding to this value.
+            The minimum multipole used in the data files, which sets the
+            lowest bin edge. All CMB power spectra and CMB lensing
+            spectra, and the corresponding covariance matrix, are assumed
+            to start at the bin edge corresponding to this value.
         lmax, Lmax : int, default=20100
-            The maximum multipole used in the CMB power spectra (`lmax`) and CMB 
-            lensing power spectrum (`Lmax`). These can be set to a lower value than 
-            the default, which will cut the mock spectra and covariance matrix. 
+            The maximum multipole used in the CMB power spectra (`lmax`)
+            and CMB lensing power spectrum (`Lmax`). These can be set to
+            a lower value than the default, which will cut the mock
+            spectra and covariance matrix.
         delensed : bool, default=True
-            Whether to use delensed data (binned CMB power spectra and covariance
-            matrix for the delensed case), as opposed to lensed data.
+            Whether to use delensed data (binned CMB power spectra and
+            covariance matrix for the delensed case), as opposed to
+            lensed data. Note that `delensed` must be `False` when
+            `use_class=True`.
         baryonic_feedback: bool, default=False
-            Whether to use binned power spectra that were calculated using the
-            HMCode2020 non-linear model that includes the effect of baryonic
-            feedback, as opposed to the HMCode2016 CDM-only model.
+            Whether to use binned power spectra that were calculated
+            using the HMCode2020 non-linear model that includes the
+            effect of baryonic feedback, as opposed to the HMCode2016
+            CDM-only model.
         data_file : str, default=None
-            The path to and name of the file containing the binned power 
-            spectra as a single one-dimensional array. 
+            The path to and name of the file containing the binned power
+            spectra as a single one-dimensional array.
             If not specified, the default file is used.
-            The CMB TT, TE, EE, and BB spectra are expected to be in units 
-            of uK^2, without any multipole factor of ell * (ell + 1) / 2pi 
-            applied. The CMB lensing spectrum is expected to be in the form 
-            C_L^kk = [L(L+1)]^2 C_L^phiphi / 4, where L is the lensing 
-            multipole and C_L^phiphi is the power spectrum of the projected 
-            lensing potential. The order of the spectra is expected to be
+            The CMB TT, TE, EE, and BB spectra are expected to be in
+            units of uK^2, without any factor of ell * (ell + 1) / 2pi
+            applied. The CMB lensing convergence spectrum is expected to
+            be in the form C_L^kk = [L(L+1)]^2 C_L^phiphi / 4, where L is
+            the lensing multipole and C_L^phiphi is the lensing potential
+            power spectrum. The order of the spectra is expected to be
             TT, TE, EE, BB, kk.
         cov_file : str, default=None
-            The path to and name of the file containing the binned covariance
-            matrix. If not specified, the default file is used.
-            The covariance matrix should have blocks for the covariance between
-            different spectra, i.e. TT x TT for cov(C_l1^TT, C_l2^TT). These
-            blocks should be in the same order and binned in the same way as
-            the `data_file`.
+            The path to and name of the file containing the binned
+            covariance matrix. If not specified, the default file is
+            used. The covariance matrix should have blocks for the
+            covariance between different spectra, i.e. TT x TT for
+            cov(C_l1^TT, C_l2^TT). These blocks should be in the same
+            order and binned in the same way as the `data_file`.
         bin_file : str, default=None
-            The path to and name of the file containing the bin edges, used to
-            bin the power spectra and covariance matrix. The file should contain 
-            a one-dimensional array of lower bin edges, except the last entry, 
-            which should be the upper edge of the last bin. If not specified, 
-            the default is used.
+            The path to and name of the file containing the bin edges,
+            used to bin the power spectra and covariance matrix. The file
+            should contain a one-dimensional array of lower bin edges,
+            except the last entry, which should be the upper edge of the
+            last bin. If not specified, the default is used.
         recon_noise_file : str, default=None
-            The path  to and name of the file containing the unbinned lensing 
-            reconstruction noise spectrum, in the same convention as the 
-            lensing power spectrum. The first column in the file should hold 
-            the lensing multipoles, and the second should hold the value of the
-            noise at that multipole. This should be the iteratively delensed 
-            residual lensing noise spectrum and is only used to obtain delensed
-            theory spectra from CAMB. If not specified, the default file is 
-            used.
+            The path  to and name of the file containing the unbinned
+            lensing reconstruction noise spectrum, in the same convention
+            as the lensing power spectrum. The first column in the file
+            should hold the lensing multipoles, and the second should
+            hold the value of the noise at that multipole. This should be
+            the iteratively delensed residual lensing noise spectrum and
+            is only used to obtain delensed theory spectra from CAMB; it
+            will be ignored if `use_class=True`. If not specified, the
+            default file is used.
         has_cmb_power_spectra : bool, default=True
-            Whether the binned spectra and covariance matrix have blocks for 
-            the TT, TE, EE, and BB CMB power spectra.
+            Whether the binned spectra and covariance matrix have blocks
+            for the TT, TE, EE, and BB CMB power spectra.
         has_cmb_lensing_spectrum : bool, default=True
-            Whether the binned spectra and covariance matrix have (a) block(s)
-            for the lensing 'kk' power spectrum.
+            Whether the binned spectra and covariance matrix have (a)
+            block(s) for the lensing 'kk' power spectrum.
         use_cmb_power_spectra : bool, default=True
-            Whether to include the TT, TE, EE, and BB CMB power spectra in
-            the likelihood calculation, if applicable.
+            Whether to include the TT, TE, EE, and BB CMB power spectra
+            in the likelihood calculation, if applicable.
         use_cmb_lensing_spectrum : bool, default=True
-            Whether to include the CMB lensing power spectrum in the likelihood
-            calculation, if applicable.
+            Whether to include the CMB lensing power spectrum in the
+            likelihood calculation, if applicable.
         use_desi_bao : bool, default=False
-            Whether to load in the mock DESI BAO data. Note that the likelihood 
-            calculation for the mock BAO data is separate from the calculation for
-            the mock CMB data.
+            Whether to load in the mock DESI BAO data. Note that the
+            likelihood calculation for the mock BAO data is separate from
+            the calculation for the mock CMB data.
+        use_class : bool, default=False
+            Whether you're using CLASS instead of CAMB.
         hd_data_version: str, default='latest'
-            The CMB-HD data version to use. This determines which CMB-HD 
-            covariance matrix, bandpowers, and lensing noise (used to 
-            calculate delensed theory) is used. By default, the latest  
-            version is used. To reproduce the results in 
-            MacInnis et. al. (2023), use `hd_data_version='v1.0'`. 
+            The CMB-HD data version to use. This determines which CMB-HD
+            covariance matrix, bandpowers, and lensing noise (used to
+            calculate delensed theory) is used. By default, the latest
+            version is used. To reproduce the results in
+            MacInnis et. al. (2023), use `hd_data_version='v1.0'`.
             See the `hdMockData` repository for a list of versions.
 
         Raises
         ------
         ValueError
-            If the settings for `use_cmb_power_spectra` and 
+            If the settings for `use_cmb_power_spectra` and
             `use_cmb_lensing_spectrum` are both `False`, or if either is
-            inconsistent with the settings `has_cmb_power_spectra` and 
+            inconsistent with the settings `has_cmb_power_spectra` and
             `has_cmb_lensing_spectrum`.
 
         Note
         ----
-        You do not have to pass file names if you are using the mock data and
-        covariance matrices provided with `hdlike` and `hd_mock_data`; they are 
-        found automatically  by the `get_hd_filenames` and `get_desi_filenames` 
-        methods. The option to use alternative mock data is included for 
-        flexibility, but you must ensure that they are binned consistently 
-        with the `hdlike` covariance matrix, have the correct ordering, and 
-        follow all other conventions stated above.
+        You do not have to pass file names if you are using the mock data
+        and covariance matrices provided with `hdlike` and `hd_mock_data`;
+        they are found automatically  by the `get_hd_filenames` and
+        `get_desi_filenames` methods. The option to use alternative mock
+        data is included for flexibility, but you must ensure that they
+        are binned consistently with the `hdlike` covariance matrix, have
+        the correct ordering, and follow all other conventions stated
+        above.
+
+        If `use_class=True`, then you must pass `delensed=False`, because
+        CLASS does not calculate delensed power spectra.
+
+        Note that CLASS must be modified in order to calculate power
+        spectra out to the maximum multipole in the CMB-HD mock data, and
+        to properly sample the effective number of relativistic species
+        when there are three massive neutrinos; see the `hdlike` README
+        for instructions, and see Appendix A of Cheslog et. al. (2026)
+        for more information.
         """
         # make sure the `hd_mock_data` package is installed:
         try:
@@ -366,6 +385,7 @@ class HDData:
                     f" install the `hd_mock_data` package ({hd_mock_data_url})"
                     " in order to use the CMB-HD likelihood.")
             raise
+
         # --- multipole ranges and default values (for full data set): ---
         self.lmin = lmin
         self.lmax = lmax
@@ -373,16 +393,26 @@ class HDData:
         self.hd_lmin = 30
         self.hd_lmax = 20100
         self.hd_Lmax = 20100
+
         # --- check input ---
+        if use_class and delensed:
+            raise ValueError(f"{use_class=} and {delensed=}: CLASS cannot "
+                             "calculate delensed CMB power spectra. You must"
+                             "either set `delensed=False` or `use_class=False`.")
         if (not use_cmb_power_spectra) and (not use_cmb_lensing_spectrum):
-            errmsg = "You set both `use_cmb_power_spectra` and `use_cmb_lensing_spectrum` to `False`, so there is nothing to calculate!"
-            raise ValueError(errmsg)
+            raise ValueError("You set both `use_cmb_power_spectra` and "
+                             "`use_cmb_lensing_spectrum` to `False`, so "
+                             "there is nothing to calculate!")
         if use_cmb_power_spectra and (not has_cmb_power_spectra):
-            errmsg = "You set `use_cmb_power_spectra: True` and `has_cmb_power_spectra: False`. To use the CMB TT/TE/EE/BB data, you must also set `has_cmb_power_spectra: True."
-            raise ValueError(errmsg)
+            raise ValueError("You set `use_cmb_power_spectra: True` and "
+                             "`has_cmb_power_spectra: False`. To use the "
+                             "CMB TT/TE/EE/BB data, you must also set "
+                             "`has_cmb_power_spectra: True.")
         if use_cmb_lensing_spectrum and (not has_cmb_lensing_spectrum):
-            errmsg = "You set `use_cmb_lensing_spectrum: True` and `has_cmb_lensing_spectrum: False`. To use CMB lensing data, you must also set `has_cmb_lensing_spectrum: True."
-            raise ValueError(errmsg)
+            raise ValueError("You set `use_cmb_lensing_spectrum: True` and "
+                             "`has_cmb_lensing_spectrum: False`. To use CMB "
+                             "lensing data, you must also set "
+                             "`has_cmb_lensing_spectrum: True.")
         # if `delensed = True`, and the user provides either a new `data_file`
         # or a new `recon_noise_file` (used for delensed theory) but not both,
         # warn the user that their theory calculation may not match the data
@@ -390,25 +420,39 @@ class HDData:
             warn = False
             if (data_file is None) and (recon_noise_file is not None):
                 warn = True
-                msg = "You provided a `recon_noise_file` to calculate the delensed theory, but you're using the default `data_file`, so your delensed data and theory may be inconsistent."
+                msg = ("You provided a `recon_noise_file` to calculate the "
+                       "delensed theory, but you're using the default "
+                       "`data_file`, so your delensed data and theory "
+                       "may be inconsistent.")
             elif (data_file is not None) and (recon_noise_file is None):
                 warn = True
-                msg = "You provided a `data_file` for the delensed data, but you're using the default `recon_noise_file` to calculate the delensed theory, so your delensed data and theory may be inconsistent. (You may ignore this message if you're using an automatically-generated YAML file)."
+                msg = ("You provided a `data_file` for the delensed data, "
+                       "but you're using the default `recon_noise_file` to "
+                       "calculate the delensed theory, so your delensed data "
+                       "and theory may be inconsistent. (You may ignore this "
+                       "message if you're using an automatically-generated "
+                       "YAML file).")
             if warn and (os.path.basename(data_file) != os.path.basename(default_data_file)):
                 warnings.warn(msg)
         # also warn the user if `delensed=True` but `use_cmb_power_spectra=False`
         if delensed and (not use_cmb_power_spectra):
-            warnings.warn("You set `delensed = True` but `use_cmb_power_spectra = False`, so there is nothing to delens.")
+            warnings.warn("You set `delensed = True` but "
+                          "`use_cmb_power_spectra = False`, "
+                          "so there is nothing to delens.")
+
         self.has_cmb_power_spectra = has_cmb_power_spectra
         self.use_cmb_power_spectra = use_cmb_power_spectra
         self.has_cmb_lensing_spectrum = has_cmb_lensing_spectrum
         self.use_cmb_lensing_spectrum = use_cmb_lensing_spectrum
         self.delensed = delensed
         self.baryonic_feedback = baryonic_feedback
+        self.use_class = use_class
+
+        # --- load the data ---
+
         # default file names
         self.hd_datalib = hd_data.HDMockData(version=hd_data_version)
         default_bin_file, default_data_file, default_covmat_file, default_recon_noise_file = self.get_hd_filenames()
-        # --- load the data ---
         bin_fname = default_bin_file if (bin_file is None) else bin_file
         data_fname = default_data_file if (data_file is None) else data_file
         covmat_fname  = default_covmat_file if (covmat_file is None) else covmat_file
@@ -419,6 +463,7 @@ class HDData:
             desi_cov = np.loadtxt(desi_cov_file)
             self.desi_invcov = np.linalg.inv(desi_cov)
             self.z, self.rs_dv = np.loadtxt(desi_data_file, unpack=True, usecols=(0,1))
+
         # load the data, covmat, and bin edges
         data = np.loadtxt(data_fname)
         covmat = np.loadtxt(covmat_fname)
@@ -434,7 +479,7 @@ class HDData:
         # trim the data and covmat to keep bins below `lmax` or `Lmax`
         # NOTE that we assume data and covmat begin at `lmin`
         data, covmat = self.trim_data_lmax(data, covmat)
-        # if we have unnecessary 'blocks' (e.g., data has clkk, but only 
+        # if we have unnecessary 'blocks' (e.g., data has clkk, but only
         # want cmb), remove them
         self.data, covmat = self.trim_data_blocks(data, covmat)
         self.invcov = np.linalg.inv(covmat)
@@ -453,18 +498,23 @@ class HDData:
         # get the file names from `HDMockData`:
         cmb_type = 'delensed' if self.delensed else 'lensed'
         bin_file = self.hd_datalib.bin_edges_fname()
-        data_file = self.hd_datalib.mcmc_bandpowers_fname(cmb_type, baryonic_feedback=self.baryonic_feedback)
+        data_file = self.hd_datalib.mcmc_bandpowers_fname(cmb_type, use_class=self.use_class,
+                                                          baryonic_feedback=self.baryonic_feedback)
         covmat_file = self.hd_datalib.block_covmat_fname(cmb_type)
         recon_noise_file = self.hd_datalib.lensing_noise_fname()
         return bin_file, data_file, covmat_file, recon_noise_file
-    
-    
+
+
     def get_desi_filenames(self):
         """Returns the filenames of the mock DESI BAO data."""
         # default data directory, relative to this file:
         data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/')
         data_path = lambda fname: os.path.join(data_dir, fname)
-        data_file = data_path('mock_desi_bao_rs_over_DV_data.txt')
+        fname = 'mock_desi_bao_rs_over_DV_data.txt'
+        # TODO: need the file for class
+        #if self.use_class:
+        #    fname = f'class_{fname}'
+        data_file = data_path(fname)
         cov_file = data_path('mock_desi_bao_rs_over_DV_cov.txt')
         return data_file, cov_file
 
@@ -675,16 +725,46 @@ class HDData:
 
 
 class HDLike(Likelihood):
-    def initialize(self):
-        """Load the CMB-HD data and covariance matrix, and determine what's 
-        in it (e.g., both CMB and lensing potential). Also set lmin/lmax 
+    #def initialize(self):
+    #    """Load the CMB-HD data and covariance matrix, and determine what's 
+    #    in it (e.g., both CMB and lensing potential). Also set lmin/lmax 
+    #    and load the bin edges to bin the theory in the same way as the data.
+
+    #    Raises
+    #    -----
+    #    ValueError 
+    #        If the settings to use CMB and/or lensing data are inconsistent.
+    #    """
+    #    # TODO / NOTE : testing
+    #    #self.hd_data = HDData(lmin=self.lmin, lmax=self.lmax, Lmax=self.Lmax, 
+    #    #                      delensed=self.delensed, 
+    #    #                      baryonic_feedback=self.baryonic_feedback,
+    #    #                      data_file=self.data_file, 
+    #    #                      covmat_file=self.covmat_file, 
+    #    #                      bin_file=self.bin_file, 
+    #    #                      recon_noise_file=self.recon_noise_file, 
+    #    #                      has_cmb_power_spectra=self.has_cmb_power_spectra, 
+    #    #                      has_cmb_lensing_spectrum=self.has_cmb_lensing_spectrum,
+    #    #                      use_cmb_power_spectra=self.use_cmb_power_spectra, 
+    #    #                      use_cmb_lensing_spectrum=self.use_cmb_lensing_spectrum,
+    #    #                      hd_data_version=self.hd_data_version)
+
+
+    def initialize_with_provider(self, provider):
+        """Check if CAMB or CLASS is being used, load the appropriate
+        CMB-HD bandpowers and covariance matrix, and determine what's in
+        it (e.g., both CMB and lensing potential). Also sets lmin/lmax
         and load the bin edges to bin the theory in the same way as the data.
 
         Raises
         -----
         ValueError 
-            If the settings to use CMB and/or lensing data are inconsistent.
+            If the settings to use CMB and/or lensing data are
+            inconsistent, or if `delensed=True` and CLASS is being used.
         """
+        super().initialize_with_provider(provider)
+        theory_names = [str(name).lower() for name in provider.model.theory]
+        use_class = any('classy' in name for name in theory_names)
         self.hd_data = HDData(lmin=self.lmin, lmax=self.lmax, Lmax=self.Lmax, 
                               delensed=self.delensed, 
                               baryonic_feedback=self.baryonic_feedback,
@@ -696,7 +776,9 @@ class HDLike(Likelihood):
                               has_cmb_lensing_spectrum=self.has_cmb_lensing_spectrum,
                               use_cmb_power_spectra=self.use_cmb_power_spectra, 
                               use_cmb_lensing_spectrum=self.use_cmb_lensing_spectrum,
+                              use_class=use_class,
                               hd_data_version=self.hd_data_version)
+
     
 
     def get_requirements(self):
