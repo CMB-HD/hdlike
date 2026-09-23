@@ -511,9 +511,8 @@ class HDData:
         data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/')
         data_path = lambda fname: os.path.join(data_dir, fname)
         fname = 'mock_desi_bao_rs_over_DV_data.txt'
-        # TODO: need the file for class
-        #if self.use_class:
-        #    fname = f'class_{fname}'
+        if self.use_class:
+            fname = f'class_{fname}'
         data_file = data_path(fname)
         cov_file = data_path('mock_desi_bao_rs_over_DV_cov.txt')
         return data_file, cov_file
@@ -725,30 +724,6 @@ class HDData:
 
 
 class HDLike(Likelihood):
-    #def initialize(self):
-    #    """Load the CMB-HD data and covariance matrix, and determine what's 
-    #    in it (e.g., both CMB and lensing potential). Also set lmin/lmax 
-    #    and load the bin edges to bin the theory in the same way as the data.
-
-    #    Raises
-    #    -----
-    #    ValueError 
-    #        If the settings to use CMB and/or lensing data are inconsistent.
-    #    """
-    #    # TODO / NOTE : testing
-    #    #self.hd_data = HDData(lmin=self.lmin, lmax=self.lmax, Lmax=self.Lmax, 
-    #    #                      delensed=self.delensed, 
-    #    #                      baryonic_feedback=self.baryonic_feedback,
-    #    #                      data_file=self.data_file, 
-    #    #                      covmat_file=self.covmat_file, 
-    #    #                      bin_file=self.bin_file, 
-    #    #                      recon_noise_file=self.recon_noise_file, 
-    #    #                      has_cmb_power_spectra=self.has_cmb_power_spectra, 
-    #    #                      has_cmb_lensing_spectrum=self.has_cmb_lensing_spectrum,
-    #    #                      use_cmb_power_spectra=self.use_cmb_power_spectra, 
-    #    #                      use_cmb_lensing_spectrum=self.use_cmb_lensing_spectrum,
-    #    #                      hd_data_version=self.hd_data_version)
-
 
     def initialize_with_provider(self, provider):
         """Check if CAMB or CLASS is being used, load the appropriate
