@@ -81,9 +81,11 @@ if args.feedback:
 hd_datalib = hd_data.HDMockData()
 if args.use_class:
     all_params = hd_datalib.class_settings()
-    param_names = ['theta_s_100', 'omega_b', 'omega_cdm', 'ln_A_s_1e10', 'n_s', 'tau_reio', 'N_ur', 'm_ncdm']
-    info['params'].pop('mnu', None)
-    info['params'].pop('N_eff', None)
+    # get CAMB params for correct values of Neff, mnu
+    camb_params = hd_datalib.camb_settings()
+    all_params['N_eff'] = camb_params['nnu']
+    all_params['mnu'] = camb_params['mnu']
+    param_names = ['theta_s_100', 'omega_b', 'omega_cdm', 'ln_A_s_1e10', 'n_s', 'tau_reio', 'N_eff', 'mnu']
 else:
     all_params = hd_datalib.camb_settings()
     all_params['theta_MC_100'] = 100 * all_params['cosmomc_theta']
@@ -113,7 +115,6 @@ if args.use_class:
     expected_chi2_hd_values = {'lensed': 3.91772e-10,
                                'lensed_feedback': 1.5083e-22}
 else:
-    # TODO: update these
     expected_chi2_desi = 0.00452987
     expected_chi2_hd_values = {'lensed': 2.69758,
                                'delensed': 3.09648,

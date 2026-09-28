@@ -70,7 +70,7 @@ if args.use_class:
     class_results.compute()
     # lensed CMB power spectra:
     class_cls = class_results.lensed_cl(lmax)
-    TCMB = class_params.get('T_cmb', 2.7255) * 1e6
+    TCMB = params.get('T_cmb', 2.7255) * 1e6
     for s in cmb_spectra:
         theo[s] = class_cls[s] * TCMB**2
     # lensing potential power spectrum:
@@ -118,7 +118,6 @@ if args.use_class:
     expected_chi2_hd_values = {'lensed': 3.91772e-10,
                                'lensed_feedback': 1.5083e-22}
 else:
-    # TODO: update these
     expected_chi2_desi = 4.380975e-3
     expected_chi2_hd_values = {'lensed': 2.627772,
                                'delensed': 3.016197,

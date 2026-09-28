@@ -312,6 +312,7 @@ camb2class = {'logA': 'ln_A_s_1e10', 'As': 'A_s', 'ns': 'n_s', 'tau': 'tau_reio'
 for camb_name, class_name in camb2class.items():
     if class_name not in hdlike_class_params_settings:
         hdlike_class_params_settings[class_name] = hdlike_camb_params_settings[camb_name]
+hdlike_class_params_settings['ln_A_s_1e10']['drop'] = True
 
 # make the params block dict:
 params = ['logA', 'As', 'ns', 'tau', 'ombh2', 'omch2', 'H0']
