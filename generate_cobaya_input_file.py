@@ -279,8 +279,6 @@ hdlike_camb_params_settings = {'ombh2': {'prior': {'min': 0.005, 'max': 0.1},
                                         'proposal': 0.001,
                                         'latex': r'\alpha_s'},
                                'HMCode_logT_AGN': {'prior': {'dist': 'norm', 'loc': 7.8, 'scale': 0.0006 * 7.8},
-                                                   # !! TODO !!
-                                                   #'prior': {'min': 7.6, 'max': 8.0}, 
                                                    'ref': {'dist': 'norm', 'loc': 7.8, 'scale': 0.03}, 
                                                    'proposal': 0.006, 
                                                    'latex': r'\log_{10}(T_\mathrm{AGN}/\mathrm{K})'},

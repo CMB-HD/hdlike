@@ -113,10 +113,9 @@ chi2_tot = chi2_hd + chi2_desi
 
 # compare with the expected results:
 if args.use_class:
-    # TODO: update these
-    expected_chi2_desi = 2.60556e-9
-    expected_chi2_hd_values = {'lensed': 3.91772e-10,
-                               'lensed_feedback': 1.5083e-22}
+    expected_chi2_desi = 0.004501765
+    expected_chi2_hd_values = {'lensed': 16.0586366,
+                               'lensed_feedback': 15.5242982}
 else:
     expected_chi2_desi = 4.380975e-3
     expected_chi2_hd_values = {'lensed': 2.627772,
