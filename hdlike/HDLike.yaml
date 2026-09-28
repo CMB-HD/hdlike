@@ -27,6 +27,14 @@ Lmax: 20100
 #  for more information about each version: github.com/CMB-HD/hdMockData
 hd_data_version: latest
 
+# when using the CMB-HD mock data, the default lensing reconstruction noise
+# (i.e., the noise on clkk) is calculated from the TT, TE, TB, EE, and
+# EB estimators; this lensing noise curve is used to calculate
+# the covariance matrix and delensed power spectra.
+# for CMB-HD mock data version `'v1.2'` or higher, if `pol_only_lensing` is True,
+# the lensing noise calculated from only the EE and EB estimators will be used instead.
+pol_only_lensing: False
+
 # --- data files: leave blank to use HD data ---
 # NOTE that, if you provide alternative filenames for, e.g., the binned data spectra,
 #      the likelihood does not check if the data is compatible (for example, the same
