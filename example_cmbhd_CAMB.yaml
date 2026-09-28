@@ -1,4 +1,4 @@
-### Example Cobaya input file for CMB-HD
+### Example Cobaya input file for CMB-HD with CAMB
 # NOTE: if you would like to modify these settings, please create a copy of this file to use.
 
 
@@ -6,51 +6,54 @@
 ##  see https://cobaya.readthedocs.io/en/latest/output.html#output-shell
 output: hdlike_chains/cmbhd
 
-## this will automatically resume previously-run MCMC chains with the same 
+## this will automatically resume previously-run MCMC chains with the same
 ##  `output` path that you've provided above
-resume: True
+resume: true
 
-### Likelihood settings
+### Likelihood settings:
 likelihood:
   hdlike.hdlike.HDLike:
-    ## see `hdlike_settings.yaml` for a description of each setting
-    delensed: True
-    baryonic_feedback: False
-    lmax: 20100
-    Lmax: 20100
-    use_cmb_power_spectra: True
-    use_cmb_lensing_spectrum: True
+    ## see `hdlike/HDLike.yaml` for a description of all settings
+    delensed: true
+    baryonic_feedback: false
   ## To include DESI BAO data, un-comment the `bao.generic` block below.
-  ## NOTE that you must provide the *absolute* path to the 
+  ## NOTE that you must provide the *absolute* path to the
   ##      `measurements_file` and `cov_file` below. Here, they are given
-  ##      by their paths relative to the location of `example_cmbhd.yaml`. 
+  ##      by their paths relative to the location of `example_cmbhd.yaml`.
   ##      Note that in the test python script `test_hdlike_cobaya.py`,
   ##      the absolute paths are found and passed to Cobaya.
   #bao.generic:
   #  measurements_file: hdlike/data/mock_desi_bao_rs_over_DV_data.txt
   #  cov_file: hdlike/data/mock_desi_bao_rs_over_DV_cov.txt
 
-### CAMB settings
+### CAMB settings:
 theory:
   camb:
     extra_args:
-      bbn_predictor: PArthENoPE_880.2_standard.dat
-      NonLinear: NonLinear_both
-      ## NOTE: If `baryonic_feedback` is `True` in the `hdlike.hdlike.HDLike` 
-      ##  block above, set `halofit_version: mead2020_feedback`.
-      halofit_version: mead2016
-      lens_potential_accuracy: 30
-      lens_margin: 2050
       AccuracyBoost: 1.1
-      lSampleBoost: 3.0
+      DoLateRadTruncation: false
+      NonLinear: NonLinear_both
+      bbn_predictor: PRIMAT_Yp_DH_ErrorMC_2021.dat
+      ## NOTE: If `baryonic_feedback` is `True` in the `hdlike.hdlike.HDLike`
+      ##       block above, set `halofit_version: mead2020_feedback`.
+      halofit_version: mead2016
+      k_per_logint: 130
+      kmax: 100
       lAccuracyBoost: 3.0
-      DoLateRadTruncation: False
-      num_massive_neutrinos: 1
+      lSampleBoost: 3.0
+      # NOTE: the parameter below is named `lens_margin` in CAMB versions
+      #       before 2.0.0
+      lens_output_margin: 2050
+      lens_potential_accuracy: 30
+      lmax: 24500
+      min_l_logl_sampling: 10000
+      num_massive_neutrinos: 3
+      recombination_model: Recfast
       theta_H0_range:
       - 20
       - 100
 
-### varied, fixed, and derived parameters
+### varied, fixed, and derived parameters:
 params:
   logA:
     prior:
@@ -76,25 +79,17 @@ params:
       scale: 0.002
     proposal: 0.0002
     latex: n_\mathrm{s}
-  theta_MC_100:
+  tau:
     prior:
-      min: 0.5
-      max: 10
+      dist: norm
+      loc: 0.054
+      scale: 0.005
     ref:
       dist: norm
-      loc: 1.04092
-      scale: 0.0004
-    proposal: 0.00005
-    latex: 100\theta_\mathrm{MC}
-    drop: true
-    renames: theta
-  cosmomc_theta:
-    value: 'lambda theta_MC_100: 1.e-2*theta_MC_100'
-    derived: false
-  H0:
-    min: 20
-    max: 100
-    latex: H_0
+      loc: 0.054
+      scale: 0.006
+    proposal: 0.0002
+    latex: \tau
   ombh2:
     prior:
       min: 0.005
@@ -102,8 +97,8 @@ params:
     ref:
       dist: norm
       loc: 0.0224
-      scale: 0.00005
-    proposal: 9.7e-6
+      scale: 5.0e-05
+    proposal: 9.7e-06
     latex: \Omega_\mathrm{b} h^2
   omch2:
     prior:
@@ -113,8 +108,37 @@ params:
       dist: norm
       loc: 0.12
       scale: 0.0005
-    proposal: 2.1e-5
+    proposal: 2.1e-05
     latex: \Omega_\mathrm{c} h^2
+  H0:
+    min: 20
+    max: 100
+    latex: H_0
+  theta_MC_100:
+    prior:
+      min: 0.5
+      max: 10
+    ref:
+      dist: norm
+      loc: 1.04071
+      scale: 0.0004
+    proposal: 5.0e-05
+    latex: 100\theta_\mathrm{MC}
+    drop: true
+    renames: theta
+  cosmomc_theta:
+    value: 'lambda theta_MC_100: 1.e-2*theta_MC_100'
+    derived: false
+  nnu:
+    prior:
+      min: 0.05
+      max: 10
+    ref:
+      dist: norm
+      loc: 3.044
+      scale: 0.005
+    proposal: 0.0013
+    latex: N_\mathrm{eff}
   mnu:
     prior:
       min: 0
@@ -125,50 +149,31 @@ params:
       scale: 0.01
     proposal: 0.0014
     latex: \sum m_\nu
-  nnu:
-    prior:
-      min: 0.05
-      max: 10
-    ref:
-      dist: norm
-      loc: 3.046
-      scale: 0.005
-    proposal: 0.0013
-    latex: N_\mathrm{eff}
-  tau:
-    prior:
-      dist: norm
-      loc: 0.054
-      scale: 0.007
-    ref:
-      dist: norm
-      loc: 0.054
-      scale: 0.006
-    proposal: 0.0002
-    latex: \tau_\mathrm{reio}
-  sigma8:
-    latex: \sigma_8
-  ## To vary the HMcode2020 baryonic feedback parameter, un-comment the
-  ##  `HMCode_logT_AGN` block below (note you must set 
-  ##  `halofit_version: mead2020_feedback` above).
+  ## To vary the HMcode2020 baryonic feedback parameter, 
+  ## set `baryonic_feedback: true` in the `hdlike.hdlike.HDLike` block,
+  ##  un-comment the `HMCode_logT_AGN` block here, and
+  ##  set `halofit_version: mead2020_feedback` in the `theory` block below.
   #HMCode_logT_AGN:
   #  prior:
-  #    min: 7.6
-  #    max: 8.0
+  #    dist: norm
+  #    loc: 7.8
+  #    scale: 0.00468
   #  ref:
   #    dist: norm
   #    loc: 7.8
   #    scale: 0.03
   #  proposal: 0.006
   #  latex: \log_{10}(T_\mathrm{AGN}/\mathrm{K})
+  sigma8:
+    latex: \sigma_8
 
 ### The MCMC sampler:
 sampler:
   mcmc:
     Rminus1_stop: 0.01
     Rminus1_cl_stop: 0.2
-    ## Below, you can provide (the absolute path to) a parameter covariance 
-    ##  matrix, e.g. from a previous MCMC run; see the Cobaya documentation for 
+    ## Below, you can provide (the absolute path to) a parameter covariance
+    ##  matrix, e.g. from a previous MCMC run; see the Cobaya documentation for
     ##  more information.
     #covmat: hdlike/data/proposal_cov/from_chains/hd_delensed_desi_bao_lcdm_nnu_mnu.txt
     ## Or, if you're using a model with baryonic feedback,
