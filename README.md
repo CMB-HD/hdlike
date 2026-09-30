@@ -2,7 +2,7 @@
 
 This is a mock CMB-HD likelihood including lensed and delensed $TT/TE/EE/BB$ CMB + lensing $\kappa\kappa$ spectra from multipoles 30 to 20,000.  We also include a mock DESI BAO likelihood. The likelihood can be used with Cobaya.  If you use this code, please cite:
 - [MacInnis, Sehgal, and Rothermel (2023)](https://arxiv.org/abs/2309.03021)
-- If you use CLASS, please also cite [Cheslog, Finson, MacInnis, Sehgal, Afshordi, Nerval, and Hložek (2026)](https://arxiv.org/abs/XXXX.XXXXX)
+- If you use CLASS, please also cite [Cheslog, Finson, MacInnis, Sehgal, Afshordi, Nerval, and Hložek (2026)](https://arxiv.org/abs/2609.35964)
 - If you use the CMB-HD mock data, please also cite the appropriate references given in the [`hdMockData` repository](https://github.com/CMB-HD/hdMockData#forecasting-data-for-cmb-hd) for the mock data version used (the latest version by default)
 
 
